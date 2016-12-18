@@ -1,5 +1,5 @@
 #tradePanel(hidden).panel
-	h1 Trade Center
+	h1 Fair Trade Center
 	hr
 	
 	br
@@ -10,13 +10,13 @@
 					hr
 				.modal-content
 					form#tradeFilter
-						label(for="trade_issuer") ISSUER
+						label(for="trade_issuer") PRODUCER
 						input#trade_issuer.trade-filter(type="text" name="issuer")
 						br
 						label(for="trade_owner") OWNER
 						input#trade_owner.trade-filter(type="text" name="owner")
 						br
-						label(for="trade_ticker") TICKER
+						label(for="trade_ticker") ASSET ID
 						input#trade_ticker.trade-filter(type="text" name="ticker")
 						br
 						a.filter-button(href="#close" title="Close") Close
@@ -36,12 +36,12 @@
 					TH: a.sort-selector(sort="date") DATE
 						span.fa.fa-arrow-up.sort-indicator
 					th: a.sort-selector(sort="cusip") CUSIP
-					th: a.sort-selector(sort="ticker") TICKER
-					th: a.sort-selector(sort="par") PAR
+					th: a.sort-selector(sort="ticker") ASSET ID
+					th: a.sort-selector(sort="par") PRICE
 					th: a.sort-selector(sort="quantity") QTY
 					th: a.sort-selector(sort="discount") DISCOUNT
-					th: a.sort-selector(sort="maturity") MATURITY
-					th: a.sort-selector(sort="issuer") ISSUER
+					th: a.sort-selector(sort="maturity") EXPIRATION
+					th: a.sort-selector(sort="issuer") PRODUCER
 					th: a.sort-selector(sort="owner") OWNER
 					th ACTION
 			tbody#tradesBody
