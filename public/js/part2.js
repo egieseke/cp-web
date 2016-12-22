@@ -25,6 +25,18 @@ var panels = [
         formID: "auditFilter",
         tableID: "#auditBody",
         filterPrefix: "audit_"
+    },
+    {
+        name: "register-vehicle",
+        formID: "register-vehicleFilter",
+        tableID: "#register-vehicleBody",
+        filterPrefix: "register-vehicle_"
+    },
+    {
+        name: "create-vehicle",
+        formID: "create-vehicleFilter",
+        tableID: "#create-vehicleBody",
+        filterPrefix: "create-vehicle_"
     }
 ];
 
@@ -46,6 +58,9 @@ $(document).on('ready', function () {
         if (user.role && user.role.toUpperCase() === "auditor".toUpperCase()) {
             $("#auditLink").show();
         } else if (user.username) {
+            $("#create-vehicleLink").show();
+            $("#transfer-vehicleLink").show();
+            $("#register-vehicleLink").show();
             $("#createLink").show();
             $("#tradeLink").show();
         }
@@ -80,15 +95,28 @@ $(document).on('ready', function () {
                 console.log('creating paper, sending', obj);
                 ws.send(JSON.stringify(obj));
                 $(".panel").hide();
+                $("#create-vehiclePanel").show();
                 $("#tradePanel").show();
+                $("#register-vehiclePanel").show();
             }
         }
         return false;
     });
 
+    $("#create-vehicleLink").click(function () {
+        $("input[name='name']").val('r' + randStr(6));
+    });
+
+    $("#transfer-vehicleLink").click(function () {
+        $("input[name='name']").val('r' + randStr(6));
+    });
+    $("#register-vehicleLink").click(function () {
+        $("input[name='name']").val('r' + randStr(6));
+    });
     $("#createLink").click(function () {
         $("input[name='name']").val('r' + randStr(6));
     });
+
 
     $("#tradeLink").click(function () {
         ws.send(JSON.stringify({type: "get_open_trades", v: 2, user: user.username}));

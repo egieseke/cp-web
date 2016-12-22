@@ -26,20 +26,26 @@ var TAG = 'router:';
 // Home
 // ============================================================================================================================
 router.get('/', isAuthenticated, function (req, res) {
-    res.render('part2', {title: 'Commercial Paper Demo', bag: {setup: setup, e: process.error, session: req.session}});
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
 
 router.get('/home', isAuthenticated, function (req, res) {
     res.redirect('/trade');
 });
 router.get('/create', isAuthenticated, function (req, res) {
-    res.render('part2', {title: 'Commercial Paper Demo', bag: {setup: setup, e: process.error, session: req.session}});
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
+});
+router.get('/register', isAuthenticated, function (req, res) {
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
+});
+router.get('/renew', isAuthenticated, function (req, res) {
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
 router.get('/trade', isAuthenticated, function (req, res) {
-    res.render('part2', {title: 'Commercial Paper Demo', bag: {setup: setup, e: process.error, session: req.session}});
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
 router.get('/audit', isAuthenticated, function (req, res) {
-    res.render('part2', {title: 'Commercial Paper Demo', bag: {setup: setup, e: process.error, session: req.session}});
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
 
 router.get('/login', function (req, res) {

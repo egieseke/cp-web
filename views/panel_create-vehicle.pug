@@ -1,0 +1,49 @@
+#create-vehiclePanel(hidden).panel
+	h1 Create Vehicle - Title fee is 200 DHS
+	hr
+	
+	#innerWrap
+		span.fa.fa-file-text-o(style="font-size: 250px; float:left;")
+		
+		form(action="/create" method="POST")
+
+			legend 
+				input(type="text" name="assetId" placeholder="VIN")
+			legend
+				select(name="make")
+					option(value="bmw") BMW
+					option(value="ferrari") FERRARI
+					option(value="honda") HONDA
+					option(value="toyota") TOYOTA
+					option(value="volkswagon") VOLKSWAGON
+				span.hint MAKE
+			legend 
+				input(type="text" name="model" placeholder="MODEL")
+			legend
+				select(name="year")
+					option(value="2016") 2016
+					option(value="2015") 2015
+					option(value="2014") 2014
+					option(value="2013") 2013
+					option(value="2012") 2012
+				span.hint YEAR
+			legend
+				select(name="color")
+					option(value="white") WHITE
+					option(value="silver") SILVER
+					option(value="red") RED
+					option(value="yellow") YELLOW
+					option(value="blue")  BLUE
+					option(value="green") GREEN 
+				span.hint COLOR
+
+			legend 
+				input(type="text" name="miles" placeholder="MILES")
+			legend 
+				input(type="text" name="value" placeholder="VALUE IN DHS")
+
+			legend
+				button(type="button" style="margin:5px;")#submit
+					span.fa.fa-check &nbsp;&nbsp;
+					span CREATE
+				
