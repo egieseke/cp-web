@@ -29,7 +29,7 @@ import (
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 )
 
-var vehiclePrefix = "vehicle:"
+var cpPrefix = "cp:"
 var accountPrefix = "acct:"
 
 // SimpleChaincode example simple Chaincode implementation
@@ -74,13 +74,6 @@ type Owner struct {
 
 type CP struct {
 	CUSIP     string  `json:"cusip"`
-        VIN       string  `json:"assetId"`
-        Make      string  `json:"make"`
-        Model     string  `json:"model"`
-        Year      int     `json:"year"`
-        Color     string  `json:"color"`
-        Miles     int     `json:"miles"`
-        Value     float64 `json:"value"`
 	Ticker    string  `json:"ticker"`
 	Par       float64 `json:"par"`
 	Qty       int     `json:"qty"`
@@ -306,7 +299,7 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 	cp.CUSIP = account.Prefix + suffix
 
 	fmt.Println("Getting State on CP " + cp.CUSIP)
-	cpRxBytes, err := stub.GetState(vehiclePrefix + cp.CUSIP)
+	cpRxBytes, err := stub.GetState(cpPrefix + cp.CUSIP)
 	if cpRxBytes == nil {
 		fmt.Println("CUSIP does not exist, creating it")
 		cpBytes, err := json.Marshal(&cp)
@@ -314,7 +307,7 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 			fmt.Println("Error marshalling cp")
 			return nil, errors.New("Error issuing commercial paper")
 		}
-		err = stub.PutState(vehiclePrefix + cp.CUSIP, cpBytes)
+		err = stub.PutState(cpPrefix + cp.CUSIP, cpBytes)
 		if err != nil {
 			fmt.Println("Error issuing paper")
 			return nil, errors.New("Error issuing commercial paper")
@@ -350,12 +343,12 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 		fmt.Println("Appending the new key to Paper Keys")
 		foundKey := false
 		for _, key := range keys {
-			if key == vehiclePrefix + cp.CUSIP {
+			if key == cpPrefix + cp.CUSIP {
 				foundKey = true
 			}
 		}
 		if foundKey == false {
-			keys = append(keys, vehiclePrefix + cp.CUSIP)
+			keys = append(keys, cpPrefix + cp.CUSIP)
 			keysBytesToWrite, err := json.Marshal(&keys)
 			if err != nil {
 				fmt.Println("Error marshalling keys")
@@ -396,7 +389,7 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 			fmt.Println("Error marshalling cp")
 			return nil, errors.New("Error issuing commercial paper")
 		}
-		err = stub.PutState(vehiclePrefix + cp.CUSIP, cpWriteBytes)
+		err = stub.PutState(cpPrefix + cp.CUSIP, cpWriteBytes)
 		if err != nil {
 			fmt.Println("Error issuing paper")
 			return nil, errors.New("Error issuing commercial paper")
@@ -505,7 +498,7 @@ func (t *SimpleChaincode) transferPaper(stub shim.ChaincodeStubInterface, args [
 	}
 
 	fmt.Println("Getting State on CP " + tr.CUSIP)
-	cpBytes, err := stub.GetState(vehiclePrefix + tr.CUSIP)
+	cpBytes, err := stub.GetState(cpPrefix + tr.CUSIP)
 	if err != nil {
 		fmt.Println("CUSIP not found")
 		return nil, errors.New("CUSIP not found " + tr.CUSIP)
@@ -648,7 +641,7 @@ func (t *SimpleChaincode) transferPaper(stub shim.ChaincodeStubInterface, args [
 		return nil, errors.New("Error marshalling the cp")
 	}
 	fmt.Println("Put state on CP")
-	err = stub.PutState(vehiclePrefix + tr.CUSIP, cpBytesToWrite)
+	err = stub.PutState(cpPrefix + tr.CUSIP, cpBytesToWrite)
 	if err != nil {
 		fmt.Println("Error writing the cp back")
 		return nil, errors.New("Error writing the cp back")

@@ -38,9 +38,6 @@ router.get('/create', isAuthenticated, function (req, res) {
 router.get('/register', isAuthenticated, function (req, res) {
     res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
-router.get('/renew', isAuthenticated, function (req, res) {
-    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
-});
 router.get('/trade', isAuthenticated, function (req, res) {
     res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });

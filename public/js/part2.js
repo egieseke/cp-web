@@ -74,6 +74,50 @@ $(document).on('ready', function () {
     // =================================================================================
     // jQuery UI Events
     // =================================================================================
+
+
+   $("#submit").click(function () {
+        if (user.username) {
+          if( escapeHtml($("input[name='form-name']").val()) === 'create-vehicle') {
+                alert("hello");
+                alert(escapeHtml($("input[name='vehicle-make']").val()));
+                alert("color: " + escapeHtml($("input[name='vehicle-color']").val()));
+                alert("miles: " +  Number($("select[name='vehicle-miles']").val()));
+                alert("value:" +  Number($("select[name='vehicle-value']").val()));
+	    
+            var obj = {
+                type: "create",
+                paper: {
+                    vin: escapeHtml($("input[name='assetId']").val()),
+                    make: escapeHtml($("input[name='vehicle-make']").val()),
+                    model: escapeHtml($("input[name='vehicle-model']").val()),
+                    year: Number($("select[name='year']").val()),
+                    color: escapeHtml($("input[name='vehicle-color']").val()),
+                    miles: Number($("select[name='vehicle-miles']").val()),
+                    value: Number($("select[name='vehicle-value']").val()),
+                    owner: [],
+                    issuer: user.name,
+                    issueDate: Date.now().toString(),
+                    ticker: escapeHtml($("input[name='assetId']").val()), 
+                    par: 4,
+                    qty: 3,
+                    discount: 10,
+                    maturity: 1
+                }, 
+                user: user.username
+            };
+            if (obj.paper && obj.paper.vin) {
+                console.log('creating vehicle, sending', obj);
+                alert(JSON.stringify(obj));
+                ws.send(JSON.stringify(obj));
+                $(".panel").hide();
+                $("#tradePanel").show();
+	    }
+          }
+        }
+        return false;
+    });
+/*
     $("#submit").click(function () {
         if (user.username) {
             var obj = {
@@ -102,7 +146,7 @@ $(document).on('ready', function () {
         }
         return false;
     });
-
+*/
     $("#create-vehicleLink").click(function () {
         $("input[name='name']").val('r' + randStr(6));
     });
