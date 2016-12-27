@@ -79,30 +79,25 @@ $(document).on('ready', function () {
    $("#submit").click(function () {
         if (user.username) {
           if( escapeHtml($("input[name='form-name']").val()) === 'create-vehicle') {
-                alert("hello");
-                alert(escapeHtml($("input[name='vehicle-make']").val()));
-                alert("color: " + escapeHtml($("input[name='vehicle-color']").val()));
-                alert("miles: " +  Number($("select[name='vehicle-miles']").val()));
-                alert("value:" +  Number($("select[name='vehicle-value']").val()));
 	    
             var obj = {
                 type: "create",
                 paper: {
                     vin: escapeHtml($("input[name='assetId']").val()),
-                    make: escapeHtml($("input[name='vehicle-make']").val()),
+                    make: escapeHtml($("select[name='make']").val()),
                     model: escapeHtml($("input[name='vehicle-model']").val()),
                     year: Number($("select[name='year']").val()),
-                    color: escapeHtml($("input[name='vehicle-color']").val()),
-                    miles: Number($("select[name='vehicle-miles']").val()),
-                    value: Number($("select[name='vehicle-value']").val()),
+                    color: escapeHtml($("select[name='vehicle-color']").val()),
+                    miles: Number($("input[name='vehicle-miles']").val()),
+                    value: Number($("input[name='vehicle-value']").val()),
                     owner: [],
                     issuer: user.name,
                     issueDate: Date.now().toString(),
                     ticker: escapeHtml($("input[name='assetId']").val()), 
-                    par: 4,
-                    qty: 3,
-                    discount: 10,
-                    maturity: 1
+                    par: 1,
+                    qty: 1,
+                    discount: 1,
+                    maturity: (new Date()).getTime()
                 }, 
                 user: user.username
             };
@@ -424,13 +419,13 @@ function build_trades(papers, panelDesc) {
                     var style;
                     if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) {
                         //cannot buy my own stuff
-                        style = 'invalid';
+                        style = null;
                     }
                     else if (entries[i].issuer.toLowerCase() !== entries[i].owner.toLowerCase()) {
                         //cannot buy stuff already bought
-                        style = 'invalid';
-                    } else {
                         style = null;
+                    } else {
+                        style = 'invalid';
                     }
 
                     // Create a row for each valid trade
@@ -451,9 +446,9 @@ function build_trades(papers, panelDesc) {
 
                     // Only the trade panel should allow you to interact with trades
                     if (panelDesc.name === "trade") {
-                        var disabled = false
-                        if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) disabled = true;			//cannot buy my own stuff
-                        if (entries[i].issuer.toLowerCase() !== entries[i].owner.toLowerCase()) disabled = true;
+                        var disabled = false;
+                        if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) disabled = false;			//cannot buy my own stuff
+                        //if (entries[i].issuer.toLowerCase() !== entries[i].owner.toLowerCase()) disabled = true;
                         var button = buyButton(disabled, entries[i].cusip, entries[i].issuer);
                         row.appendChild(button);
                     }

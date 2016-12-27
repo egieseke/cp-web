@@ -26,6 +26,7 @@ function createRow(data) {
 function buyButton(disabled, cusip, issuer) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');
+    button.setAttribute('href', '#transferModal');
     button.setAttribute('data_cusip', cusip);
     button.setAttribute('data_issuer', issuer);
     if(disabled) button.disabled = true;
@@ -35,7 +36,7 @@ function buyButton(disabled, cusip, issuer) {
     var span = document.createElement('span');
     span.classList.add('fa');
     span.classList.add('fa-exchange');
-    span.innerHTML = ' &nbsp;&nbsp;BUY 1';
+    span.innerHTML = ' &nbsp;&nbsp;Transfer Title';
     button.appendChild(span);
 
     // Wrap the buy button in a td like the other items in the row.
