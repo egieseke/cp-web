@@ -1,41 +1,47 @@
-#createPanel(hidden).panel
-	h1 Create Asset
+#licensePanel(hidden).panel
+	h1 Department of Motor Vehicles
+	h1 Driver License
 	hr
 	
-	#innerWrap
-		span.fa.fa-file-text-o(style="font-size: 250px; float:left;")
-		
-		form(action="/create" method="POST")#createform
-			legend 
-				input(type="text" name="ticker" placeholder="Asset Id")
-			legend 
-				select(name="par")
-					option(value="100000") $1,000
-					option(value="1000000") $5,000
-					option(value="10000000") $10,000
-				span.hint PRICE
-			legend 
-				select(name="qty")
-					option 50
-					option 100
-					option 150
-					option 200
-				span.hint QTY_Lbs
-			legend 
-				select(name="discount")
-					option(value="3.25") 3.25%
-					option(value="7.35") 7.35%
-					option(value="10.0") 10.0%
-				span.hint DISCOUNT
-			legend 
-				select(name="maturity")
-					option(value="100") 100 days
-					option(value="150") 150 days
-					option(value="200") 200 days
-				span.hint EXPIRATION
-			
-			legend
-				button(type="button" style="margin:5px;")#submit
-					span.fa.fa-check &nbsp;&nbsp;
-					span CREATE
-				
+	br
+	#licenseModal.modalDialog
+			div
+				.modal-header
+					h2 Filter License
+					hr
+				.modal-content
+					form#licenseFilter
+						label(for="license_issuer") POSTAL-CODE 
+						input#license_issuer.license-filter(type="text" name="issuer")
+						br
+						label(for="") DRIVER
+						input#license_owner.license-filter(type="text" name="owner")
+						br
+						label(for="license_ticker") LICENSE-ID
+						input#license_ticker.license-filter(type="text" name="ticker")
+						br
+						a.filter-button(href="#close" title="Close") Close
+						
+	#openLicenses
+		br
+		p
+			span(style="font-weight:bold;") Account Balance:
+			span#accountBalanceLicense Loading from blockchain...
+		br
+		a.filter-button(href="#licenseModal") Filter License
+		br
+		br
+		table#licensesTable.tablesorter
+			thead
+				tr 
+					TH: a.sort-selector(sort="date") DATE
+						span.fa.fa-arrow-up.sort-indicator
+					th: a.sort-selector(sort="cusip") LICENCE-ID
+					th: a.sort-selector(sort="owner") DRIVER
+					th: a.sort-selector(sort="address") ADDRESS
+					th: a.sort-selector(sort="city") CITY
+					th: a.sort-selector(sort="state") STATE
+					th: a.sort-selector(sort="zip") POSTAL-CODE
+					th: a.sort-selector(sort="maturity") EXPIRATION
+					th ACTION
+			tbody#licensesBody

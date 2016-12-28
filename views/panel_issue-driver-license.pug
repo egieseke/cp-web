@@ -1,0 +1,24 @@
+#issue-driver-licensePanel(hidden).panel
+	h1 Issue Driver License 
+	h3 Fee is 50 DHS, Valid for 10 years
+	hr
+	
+	#innerWrap
+		span.fa.fa-file-text-o(style="font-size: 250px; float:left;")
+		
+		form(action="/create" method="POST")
+			legend 
+				input(type="text" name="roadTestReceiptId" placeholder="Road Test Receipt Id")
+			legend 
+				input(type="text" name="address" placeholder="Current Address")
+			legend 
+				input(type="text" name="city" placeholder="City")
+			legend 
+				input(type="text" name="state" placeholder="State")
+			legend 
+				input(type="text" name="zip" placeholder="Postal Code")
+			legend
+				button(type="button" style="margin:5px;")#submitIssueDriverLicense
+					span.fa.fa-check &nbsp;&nbsp;
+					span CREATE
+				

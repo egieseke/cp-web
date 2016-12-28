@@ -65,6 +65,25 @@ module.exports.process_msg = function (socket, data) {
                 else
                     console.log(TAG, 'Queued create job complete');
             });
+        } else if (data.license && data.license.licenseId) {
+            console.log(TAG, 'creating license:', data.license);
+            chaincodeHelper.queue.push(function (cb) {
+                chaincodeHelper.createLicense(data.user, data.license, function (err, result) {
+                    if (err != null) {
+                        console.error(TAG, 'Error in create. No response will be sent. error:', err);
+                    }
+                    else {
+                        console.log(TAG, 'paper created.  No response will be sent. result:', result);
+                    }
+
+                    cb();
+                });
+            }, function (err) {
+                if (err)
+                    console.error(TAG, 'Queued create license error:', err.message);
+                else
+                    console.log(TAG, 'Queued create license job complete');
+            });
         }
     }
     else if (data.type == 'get_papers') {
@@ -87,6 +106,28 @@ module.exports.process_msg = function (socket, data) {
                 console.error(TAG, 'Queued get_papers error:', err.message);
             else
                 console.log(TAG, 'Queued get_papers job complete');
+        });
+    }
+    else if (data.type == 'get_licenses') {
+
+        console.log(TAG, 'getting licenses');
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.getLicenses(data.user, function (err, licenses) {
+                if (err != null) {
+                    console.error(TAG, 'Error in get_papers. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'got :licenses', licenses);
+                    sendMsg({msg: 'licenses', licenses: licenses });
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued get_licenses error:', err.message);
+            else
+                console.log(TAG, 'Queued get_licenses job complete');
         });
     }
     else if (data.type == 'transfer_paper') {
