@@ -32,6 +32,7 @@ import (
 var vehiclePrefix = "vehicle:"
 var accountPrefix = "acct:"
 var licensePrefix = "license:"
+var registrationPrefix = "reg:"
 
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
@@ -72,6 +73,17 @@ type Owner struct {
 	Company  string    `json:"company"`
 	Quantity int      `json:"quantity"`
 }
+type VehicleRegistration struct {
+        RegistrationId string  `json:"registrationId"`
+        PlateNum   string  `json:"plateNum"`
+        VIN       string  `json:"vin"`
+        TestId    string  `json:"testId"`
+        PolicyId    string  `json:"policyId"`
+        Owner    string  `json:"owner"`
+        IssueDate string  `json:"issueDate"`
+        ExpiryDate string  `json:"expiryDate"`
+}
+
 type DriverLicense struct {
         LicenseId string  `json:"licenseId"`
         TestId    string  `json:"testId"`
@@ -235,6 +247,155 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	}
 
 	fmt.Println("Initialization complete")
+	return nil, nil
+}
+
+func (t *SimpleChaincode) issueVehicleRegistration(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	fmt.Println("Creating Vehicle Registration")
+
+	//need one arg
+	if len(args) != 1 {
+		fmt.Println("error invalid arguments")
+		return nil, errors.New("Incorrect number of arguments. Expecting vehicle registration record")
+	}
+
+	var registration VehicleRegistration
+	var err error
+	var account Account
+
+	fmt.Println("Unmarshalling VehicleRegistration")
+	err = json.Unmarshal([]byte(args[0]), &registration)
+	if err != nil {
+		fmt.Println("error invalid registration issue")
+		return nil, errors.New("Invalid VehicleRegistration issue")
+	}
+
+	//generate the CUSIP
+	//get account prefix
+	fmt.Println("Getting state of - " + accountPrefix + registration.Owner)
+	accountBytes, err := stub.GetState(accountPrefix + registration.Owner)
+	if err != nil {
+		fmt.Println("Error Getting state of - " + accountPrefix + registration.Owner)
+		return nil, errors.New("Error retrieving account " + registration.Owner)
+	}
+	err = json.Unmarshal(accountBytes, &account)
+	if err != nil {
+		fmt.Println("Error Unmarshalling accountBytes")
+		return nil, errors.New("Error retrieving account " + registration.Owner)
+	}
+
+        //TODO CUSIP generation ?
+	account.AssetsIds = append(account.AssetsIds, registration.RegistrationId)
+
+	var govaccount Account
+	govaccountBytes, err := stub.GetState(accountPrefix + "government")
+	if err != nil {
+		fmt.Println("Error Getting state of - " + accountPrefix + "government")
+		return nil, errors.New("Error retrieving account acct:government " )
+	}
+	err = json.Unmarshal(govaccountBytes, &govaccount)
+	if err != nil {
+		fmt.Println("Error Unmarshalling govaccountBytes")
+		return nil, errors.New("Error retrieving account acct:government" )
+	}
+        //deduct fee from account
+        account.CashBalance -= 40
+        govaccount.CashBalance += 40
+
+/*
+	// Set the issuer to be the owner of all quantity
+	var owner Owner
+	owner.Company = cp.Issuer
+	owner.Quantity = cp.Qty
+
+	cp.Owners = append(cp.Owners, owner)
+
+
+	suffix, err := generateCUSIPSuffix(license.IssueDate, license.ExpiryDate)
+	if err != nil {
+		fmt.Println("Error generating licenseId")
+		return nil, errors.New("Error generating driver license Id")
+	}
+	fmt.Println("Marshalling DriverLicense bytes")
+	license.LicenseId = license.Prefix + suffix
+*/
+
+	fmt.Println("Getting State on Vehicle Registration" + registration.RegistrationId)
+	cpRxBytes, err := stub.GetState(registrationPrefix + registration.RegistrationId)
+	if cpRxBytes == nil {
+		fmt.Println("Registration does not exist, creating it")
+		licenseBytes, err := json.Marshal(&registration)
+		if err != nil {
+			fmt.Println("Error marshalling registration")
+			return nil, errors.New("Error issuing vehicle registration")
+		}
+		err = stub.PutState(registrationPrefix + registration.RegistrationId, licenseBytes)
+		if err != nil {
+			fmt.Println("Error issuing registration")
+			return nil, errors.New("Error issuing vehicle registration")
+		}
+
+		fmt.Println("Marshalling account bytes to write")
+		accountBytesToWrite, err := json.Marshal(&account)
+		if err != nil {
+			fmt.Println("Error marshalling account")
+			return nil, errors.New("Error issuing vehicle registration")
+		}
+		err = stub.PutState(accountPrefix + registration.Owner , accountBytesToWrite)
+		if err != nil {
+			fmt.Println("Error putting state on accountBytesToWrite")
+			return nil, errors.New("Error issuing vehicle registration")
+		}
+
+		govaccountBytesToWrite, err := json.Marshal(&govaccount)
+		if err != nil {
+			fmt.Println("Error marshalling govt account")
+			return nil, errors.New("Error issuing vehicle registration")
+		}
+		err = stub.PutState(accountPrefix + "government", govaccountBytesToWrite)
+		if err != nil {
+			fmt.Println("Error putting state on govaccountBytesToWrite")
+			return nil, errors.New("Error issuing vehicle registration")
+		}
+
+		// Update the paper keys by adding the new key
+		fmt.Println("Getting License Keys")
+		keysBytes, err := stub.GetState("PaperKeys")
+		if err != nil {
+			fmt.Println("Error retrieving paper keys")
+			return nil, errors.New("Error retrieving paper keys")
+		}
+		var keys []string
+		err = json.Unmarshal(keysBytes, &keys)
+		if err != nil {
+			fmt.Println("Error unmarshel keys")
+			return nil, errors.New("Error unmarshalling paper keys ")
+		}
+
+		fmt.Println("Appending the new key to Paper Keys")
+		foundKey := false
+		for _, key := range keys {
+			if key == registrationPrefix + registration.RegistrationId{
+				foundKey = true
+			}
+		}
+		if foundKey == false {
+			keys = append(keys, registrationPrefix + registration.RegistrationId)
+			keysBytesToWrite, err := json.Marshal(&keys)
+			if err != nil {
+				fmt.Println("Error marshalling keys")
+				return nil, errors.New("Error marshalling the keys")
+			}
+			fmt.Println("Put state on PaperKeys")
+			err = stub.PutState("PaperKeys", keysBytesToWrite)
+			if err != nil {
+				fmt.Println("Error writting keys back")
+				return nil, errors.New("Error writing the keys back")
+			}
+		}
+
+		fmt.Println("Issue vehicle registration %+v\n", registration)
+	} 
 	return nil, nil
 }
 
@@ -626,7 +787,40 @@ func GetAllDriverLicenses(stub shim.ChaincodeStubInterface) ([]DriverLicense , e
 
         return allCPs, nil
 }
+func GetAllVehicleRegistrations(stub shim.ChaincodeStubInterface) ([]VehicleRegistration, error) {
 
+        var allCPs []VehicleRegistration
+
+        // Get list of all the keys
+        keysBytes, err := stub.GetState("PaperKeys")
+        if err != nil {
+                fmt.Println("Error retrieving paper keys")
+                return nil, errors.New("Error retrieving paper keys")
+        }
+        var keys []string
+        err = json.Unmarshal(keysBytes, &keys)
+        if err != nil {
+                fmt.Println("Error unmarshalling paper keys")
+                return nil, errors.New("Error unmarshalling paper keys")
+        }
+
+        // Get all the cps
+        for _, value := range keys {
+                cpBytes, err := stub.GetState(value)
+
+                var cp VehicleRegistration
+                err = json.Unmarshal(cpBytes, &cp)
+                if err != nil {
+                        fmt.Println("Error retrieving cp " + value)
+                        return nil, errors.New("Error retrieving cp " + value)
+                }
+
+                fmt.Println("Appending CP" + value)
+                allCPs = append(allCPs, cp)
+        }
+
+        return allCPs, nil
+}
 func GetAllCPs(stub shim.ChaincodeStubInterface) ([]CP, error) {
 
 	var allCPs []CP
@@ -1090,6 +1284,21 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
                         fmt.Println("All success, returning all licenses")
                         return allCPsBytes, nil
                 }
+        } else if function == "GetAllVehicleRegistrations" {
+                fmt.Println("Getting all Vehicle Registrations")
+                allCPs, err := GetAllVehicleRegistrations(stub)
+                if err != nil {
+                        fmt.Println("Error from getall registrations")
+                        return nil, err
+                } else {
+                        allCPsBytes, err1 := json.Marshal(&allCPs)
+                        if err1 != nil {
+                                fmt.Println("Error marshalling all registrations")
+                                return nil, err1
+                        }
+                        fmt.Println("All success, returning all registrations")
+                        return allCPsBytes, nil
+                }
         } else if function == "GetCP" {
 		fmt.Println("Getting particular cp")
 		cp, err := GetCP(args[0], stub)
@@ -1141,7 +1350,9 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.issueCommercialPaper(stub, args)
 	} else if function == "issueDriverLicense" {
                 return t.issueDriverLicense(stub, args)
-	} else if function == "transferPaper" {
+	} else if function == "issueVehicleRegistration" {
+                return t.issueVehicleRegistration(stub, args)
+        } else if function == "transferPaper" {
 		return t.transferPaper(stub, args)
 	} else if function == "createAccounts" {
 		return t.createAccounts(stub, args)

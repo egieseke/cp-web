@@ -4,44 +4,43 @@
 	hr
 	
 	br
-	#licenseModal.modalDialog
+	#registrationModal.modalDialog
 			div
 				.modal-header
 					h2 Filter License
 					hr
 				.modal-content
-					form#licenseFilter
-						label(for="license_issuer") POSTAL-CODE 
-						input#license_issuer.license-filter(type="text" name="issuer")
+					form#registrationFilter
+						label(for="registration_issuer") POSTAL-CODE 
+						input#registration_issuer.registration-filter(type="text" name="issuer")
 						br
 						label(for="") DRIVER
-						input#license_owner.license-filter(type="text" name="owner")
+						input#registration_owner.registration-filter(type="text" name="owner")
 						br
-						label(for="license_ticker") LICENSE-ID
-						input#license_ticker.license-filter(type="text" name="ticker")
+						label(for="registration_ticker") LICENSE-ID
+						input#registration_ticker.registration-filter(type="text" name="ticker")
 						br
 						a.filter-button(href="#close" title="Close") Close
 						
-	#openLicenses
+	#openRegistrations
 		br
 		p
 			span(style="font-weight:bold;") Account Balance:
-			span#accountBalanceLicense Loading from blockchain...
+			span#accountBalanceRegistration Loading from blockchain...
 		br
-		a.filter-button(href="#licenseModal") Filter License
+		a.filter-button(href="#registrationModal") Filter Registration 
 		br
 		br
-		table#licensesTable.tablesorter
+		table#registrationTable.tablesorter
 			thead
 				tr 
 					TH: a.sort-selector(sort="date") DATE
 						span.fa.fa-arrow-up.sort-indicator
-					th: a.sort-selector(sort="cusip") LICENCE-ID
-					th: a.sort-selector(sort="owner") DRIVER
-					th: a.sort-selector(sort="address") ADDRESS
-					th: a.sort-selector(sort="city") CITY
-					th: a.sort-selector(sort="state") STATE
-					th: a.sort-selector(sort="zip") POSTAL-CODE
+					th: a.sort-selector(sort="cusip") REGISTRATION-ID
+					th: a.sort-selector(sort="cusip") VIN
+					th: a.sort-selector(sort="cusip") LICENSE-PLATE
+					th: a.sort-selector(sort="cusip") INSURANCE-POLICY
+					th: a.sort-selector(sort="owner") OWNER
 					th: a.sort-selector(sort="maturity") EXPIRATION
 					th ACTION
-			tbody#licensesBody
+			tbody#registrationBody

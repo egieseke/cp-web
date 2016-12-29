@@ -69,6 +69,29 @@ function renewLicenseButton(disabled, licenseId, driver) {
     return td;
 }
 
+function renewRegistrationButton(disabled, registrationId, owner) {
+    var button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.setAttribute('href', '#registrationModal');
+    button.setAttribute('data_registrationId', registrationId);
+    button.setAttribute('data_owner', owner);
+    if(disabled) button.disabled = true;
+    //button.classList.add('buyPaper');
+    //button.classList.add('altButton');
+
+    var span = document.createElement('span');
+    span.classList.add('fa');
+    span.classList.add('fa-exchange');
+    span.innerHTML = ' &nbsp;&nbsp;Renew Registration';
+    button.appendChild(span);
+
+    // Wrap the buy button in a td like the other items in the row.
+    var td = document.createElement('td');
+    td.appendChild(button);
+
+    return td;
+}
+
 function paper_to_entries(paper) {
     var entries = [];
     for (var owner in paper.owner) {
@@ -115,3 +138,22 @@ function license_to_entries(license) {
     return entries;
 }
 
+function registration_to_entries(registration) {
+    var entries = [];
+        var entry = {
+            registrationId: registration.registrationId,
+            plateNum: registration.plateNum,
+            vin: registration.vin,
+            testId: registration.testId,
+            policyId: registration.policyId,
+            owner: registration.driver,
+            issueDate: registration.issueDate,
+            expiryDate: registration.expiryDate
+        };
+
+        // Save which paper this is associated with
+        entry.registration= registration;
+
+        entries.push(entry);
+    return entries;
+}

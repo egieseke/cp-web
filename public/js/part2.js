@@ -27,6 +27,12 @@ var panels = [
         filterPrefix: "license_"
     },
     {
+        name: "registration",
+        formID: "registrationFilter",
+        tableID: "#registrationBody",
+        filterPrefix: "registration_"
+    },
+    {
         name: "audit",
         formID: "auditFilter",
         tableID: "#auditBody",
@@ -87,6 +93,33 @@ $(document).on('ready', function () {
     // =================================================================================
     // jQuery UI Events
     // =================================================================================
+
+    $("#submit1").click(function () {
+         alert("here");
+         var myDate = new Date();
+         myDate.setFullYear(myDate.getFullYear() + 2);
+         var obj = {
+                type: "create",
+                registration: {
+                    registrationId: Date.now().toString(),
+                    plateNum: Date.now().toString(),
+                    vin: escapeHtml($("input[name='vehicleId']").val()),
+                    testId: escapeHtml($("input[name='inspectionReceiptId']").val()),
+                    policyId: escapeHtml($("input[name='insurancePolicyId']").val()),
+                    owner: user.name,
+                    issueDate: Date.now().toString(),
+                    expiryDate: myDate.toString()
+                },
+                user: user.username
+            };
+            if (obj.registration && obj.registration.testId) {
+                console.log('creating registration, sending', obj);
+                alert(JSON.stringify(obj));
+                ws.send(JSON.stringify(obj));
+                $(".panel").hide();
+                $("#registrationPanel").show();
+            }
+   });
 
    $("#submitIssueDriverLicense").click(function () {
          var myDate = new Date(); 
@@ -333,6 +366,7 @@ function connect_to_server() {
         ws.send(JSON.stringify({type: "chainstats", v: 2, user: user.username}));
         ws.send(JSON.stringify({type: "get_papers", v: 2, user: user.username}));
         ws.send(JSON.stringify({type: "get_licenses", v: 2, user: user.username}));
+        //ws.send(JSON.stringify({type: "get_registrations", v: 2, user: user.username}));
         if (user.name && user.role !== "auditor") {
             ws.send(JSON.stringify({type: 'get_company', company: user.name, user: user.username}));
         }
@@ -380,6 +414,22 @@ function connect_to_server() {
                                         console.log('cannot parse licenses', e);
                                 }
                         }
+                        else if (data.msg === 'registrations') {
+                                try{
+                                        var registrations = JSON.parse(data.registrations);
+                                        build_registrations(registrations, panels[2]);
+                                        /*
+                                        if ($('#auditPanel').is){
+                                                for (var i in panels) {
+                                                        build_licenses(licenses, panels[i]);
+                                                }
+                                        }
+                                        */
+                                }
+                                catch(e){
+                                        console.log('cannot parse licenses', e);
+                                }
+                        }
 			else if (data.msg === 'chainstats') {
 				console.log(JSON.stringify(data));
 				var e = formatDate(data.blockstats.transactions[0].timestamp.seconds * 1000, '%M/%d/%Y &nbsp;%I:%m%P');
@@ -404,6 +454,7 @@ function connect_to_server() {
 				// Ask for all available trades and information for the current company
 				ws.send(JSON.stringify({type: "get_papers", v: 2, user: user.username}));
 				ws.send(JSON.stringify({type: "get_licenses", v: 2, user: user.username}));
+				ws.send(JSON.stringify({type: "get_registrations", v: 2, user: user.username}));
                 ws.send(JSON.stringify({type: "chainstats", v: 2, user: user.username}));
 				if (user.role !== "auditor") {
 					ws.send(JSON.stringify({type: 'get_company', company: user.name, user: user.username}));
@@ -440,6 +491,105 @@ function connect_to_server() {
 // =================================================================================
 //	UI Building
 // =================================================================================
+function build_registrations(registrations, panelDesc) {
+
+    if (registrations && registrations.length > 0) {
+
+        // Break the registrations down into entries
+        console.log('breaking registrations into individual entries');
+        var entries = [];
+        for (var registration in registrations) {
+            var broken_up = registration_to_entries(registrations[registration]);
+            entries = entries.concat(broken_up);
+        }
+        console.log("Displaying", registrations.length, "registrations as", entries.length, "entries");
+
+        // If no panel is given, assume this is the 
+        if (!panelDesc) {
+            panelDesc = panels[0];
+        }
+
+        entries.sort(sort_selected);
+        if (sort_reversed) entries.reverse();
+
+        // Display each entry as a row in the table
+        var rows = [];
+        for (var i in entries) {
+            console.log('!', entries[i]);
+
+
+                if (excluded(entries[i], filter)) {
+                    var style;
+/*
+                    if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) {
+                        //cannot buy my own stuff
+                        style = null;
+                    }
+*/
+                    // Create a row for each valid trade
+                    var data = [
+                        formatDate(Number(entries[i].issueDate), '%M/%d %I:%m%P'),
+                        entries[i].registrationId,
+                        entries[i].vin,
+                        entries[i].plateNum,
+                        entries[i].policyId,
+                        escapeHtml(entries[i].owner),
+                        entries[i].expiryDate
+                    ];
+
+                    var row = createRow(data);
+                    style && row.classList.add(style);
+
+                    if (panelDesc.name === "registration") {
+                        var disabled = false;
+                        //if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) disabled = false;		
+                        var button = renewRegistrationButton(disabled, entries[i].registrationId, entries[i].owner);
+                        row.appendChild(button);
+                    }
+                    rows.push(row);
+                }
+
+        }
+
+        // Placeholder for an empty table
+        var html = '';
+        if (rows.length == 0) {
+            if (panelDesc.name === 'registration')
+                html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+            else if (panelDesc.name === 'audit')
+                html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'; // No action column
+            $(panelDesc.tableID).html(html);
+        } else {
+            // Remove the existing table data
+            console.log("clearing existing table data");
+            var tableBody = $(panelDesc.tableID);
+            tableBody.empty();
+
+
+            // Add the new rows to the table
+            console.log("populating new table data");
+            var row;
+            while (rows.length > 0) {
+                row = rows.shift();
+                tableBody.append(row);
+            }
+        }
+    } else {
+        if (panelDesc.name === 'registration')
+            html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        else if (panelDesc.name === 'audit')
+            html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'; // No action column
+        $(panelDesc.tableID).html(html);
+    }
+}
+
+/**
+ * Process the list of trades from the server and displays them in the trade list.
+ * This function builds the tables for multiple panels, so an object is needed to
+ * identify which table it should be drawing to.
+ * @param papers The list of trades to display.
+ * @param panelDesc An object describing what panel the trades are being shown in.
+ */
 function build_licenses(licenses, panelDesc) {
 
     if (licenses && licenses.length > 0) {

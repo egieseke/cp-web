@@ -84,6 +84,25 @@ module.exports.process_msg = function (socket, data) {
                 else
                     console.log(TAG, 'Queued create license job complete');
             });
+        } else if (data.registration && data.registration.registrationId) {
+            console.log(TAG, 'creating registration:', data.registration);
+            chaincodeHelper.queue.push(function (cb) {
+                chaincodeHelper.createRegistration(data.user, data.registration, function (err, result) {
+                    if (err != null) {
+                        console.error(TAG, 'Error in create. No response will be sent. error:', err);
+                    }
+                    else {
+                        console.log(TAG, 'paper created.  No response will be sent. result:', result);
+                    }
+
+                    cb();
+                });
+            }, function (err) {
+                if (err)
+                    console.error(TAG, 'Queued create registration error:', err.message);
+                else
+                    console.log(TAG, 'Queued create registration job complete');
+            });
         }
     }
     else if (data.type == 'get_papers') {
@@ -128,6 +147,28 @@ module.exports.process_msg = function (socket, data) {
                 console.error(TAG, 'Queued get_licenses error:', err.message);
             else
                 console.log(TAG, 'Queued get_licenses job complete');
+        });
+    }
+    else if (data.type == 'get_registrations') {
+
+        console.log(TAG, 'getting registrations');
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.getRegistrations(data.user, function (err, registrations) {
+                if (err != null) {
+                    console.error(TAG, 'Error in get_registrations. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'got :registrations', registrations);
+                    sendMsg({msg: 'registrations', registrations: registrations });
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued get_registrations error:', err.message);
+            else
+                console.log(TAG, 'Queued get_registrations job complete');
         });
     }
     else if (data.type == 'transfer_paper') {
