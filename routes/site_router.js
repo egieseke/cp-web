@@ -38,7 +38,7 @@ router.get('/create', isAuthenticated, function (req, res) {
 router.get('/register', isAuthenticated, function (req, res) {
     res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
-router.get('/trade', isAuthenticated, function (req, res) {
+router.get('/title', isAuthenticated, function (req, res) {
     res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
 router.get('/audit', isAuthenticated, function (req, res) {
@@ -153,7 +153,7 @@ function login(req, res) {
                 if (req.session.role.toLowerCase() === 'auditor'.toLowerCase()) {
                     res.redirect('/audit');
                 } else {
-                    res.redirect('/trade');
+                    res.redirect('/title');
                 }
             });
         }

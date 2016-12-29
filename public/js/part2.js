@@ -15,7 +15,7 @@ var user = {
 };
 var panels = [
     {
-        name: "trade",
+        name: "title",
         formID: "tradeFilter",
         tableID: "#tradesBody",
         filterPrefix: "trade_"
@@ -45,10 +45,10 @@ var panels = [
         filterPrefix: "issue-driver-license_"
     },
     {
-        name: "create-vehicle",
-        formID: "create-vehicleFilter",
-        tableID: "#create-vehicleBody",
-        filterPrefix: "create-vehicle_"
+        name: "issue-title",
+        formID: "issue-titleFilter",
+        tableID: "#issue-titleBody",
+        filterPrefix: "issue-title_"
     }
 ];
 
@@ -70,12 +70,12 @@ $(document).on('ready', function () {
         if (user.role && user.role.toUpperCase() === "auditor".toUpperCase()) {
             $("#auditLink").show();
         } else if (user.username) {
-            $("#create-vehicleLink").show();
+            $("#issue-titleLink").show();
             $("#issue-driver-licenseLink").show();
             $("#register-vehicleLink").show();
-            $("#createLink").show();
-            $("#tradeLink").show();
+            $("#titleLink").show();
             $("#licenseLink").show();
+            $("#registrationLink").show();
         }
     } else {
 
@@ -118,7 +118,7 @@ $(document).on('ready', function () {
    $("#submit").click(function () {
         alert("hello");
         if (user.username) {
-          if( escapeHtml($("input[name='form-name']").val()) === 'create-vehicle') {
+          if( escapeHtml($("input[name='form-name']").val()) === 'issue-title') {
 	    
             var obj = {
                 type: "create",
@@ -146,7 +146,7 @@ $(document).on('ready', function () {
                 alert(JSON.stringify(obj));
                 ws.send(JSON.stringify(obj));
                 $(".panel").hide();
-                $("#tradePanel").show();
+                $("#titlePanel").show();
 	    }
           }
           if( escapeHtml($("input[name='form-name']").val()) === 'issue-driver-license') {
@@ -177,7 +177,7 @@ $(document).on('ready', function () {
         return false;
     });
 
-    $("#create-vehicleLink").click(function () {
+    $("#issue-titleLink").click(function () {
         $("input[name='name']").val('r' + randStr(6));
     });
 
@@ -192,11 +192,14 @@ $(document).on('ready', function () {
     });
 
 
-    $("#tradeLink").click(function () {
+    $("#titleLink").click(function () {
         ws.send(JSON.stringify({type: "get_open_trades", v: 2, user: user.username}));
     });
     $("#licenseLink").click(function () {
         ws.send(JSON.stringify({type: "get_open_licenses", v: 2, user: user.username}));
+    });
+    $("#registrationLink").click(function () {
+        ws.send(JSON.stringify({type: "get_open_registrations", v: 2, user: user.username}));
     });
 
     //login events
@@ -486,7 +489,6 @@ function build_licenses(licenses, panelDesc) {
                     var row = createRow(data);
                     style && row.classList.add(style);
 
-                    // Only the trade panel should allow you to interact with trades
                     if (panelDesc.name === "license") {
                         var disabled = false;
                         if (user.name.toLowerCase() === entries[i].driver.toLowerCase()) disabled = false;		
