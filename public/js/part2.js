@@ -445,6 +445,8 @@ function connect_to_server() {
 					var company = JSON.parse(data.company);
 					$("#accountBalance").html(formatMoney(company.cashBalance));
 					$("#accountBalanceLicense").html(formatMoney(company.cashBalance));
+ 					$("#accountBalanceRegistration").html(formatMoney(company.cashBalance));
+                    
 				}
 				catch(e){
 					console.log('cannot parse company', e);
