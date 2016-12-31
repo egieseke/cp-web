@@ -95,7 +95,6 @@ $(document).on('ready', function () {
     // =================================================================================
 
     $("#submit1").click(function () {
-         alert("here");
          var myDate = new Date();
          myDate.setFullYear(myDate.getFullYear() + 2);
          var obj = {
@@ -149,7 +148,6 @@ $(document).on('ready', function () {
    });
 
    $("#submit").click(function () {
-        alert("hello");
         if (user.username) {
 	    
             var obj = {
@@ -289,6 +287,35 @@ $(document).on('ready', function () {
             $("#notificationPanel").animate({width: 'toggle'});
         }
     });
+
+   //renew license
+    $(document).on("click", ".renewLicense", function () {
+         var myDate = new Date(); 
+         myDate.setFullYear(myDate.getFullYear() + 2);
+        if (user.username) {
+            console.log('renewing license...');
+            //var i = $(this).attr('trade_pos');
+            var licenseId = $(this).attr('data_licenseId');
+            var driver = $(this).attr('data_driver');
+
+            // TODO Map the trade_pos to the correct button
+            var msg = {
+                type: 'renew_license',
+                renewlicense: {
+                    txId: Date.now().toString(),
+                    licenseId: licenseId,
+                    driver: driver,
+                    issueDate: Date.now().toString(),
+                    expiryDate: myDate.toString()
+                },
+                user: user.username
+            };
+            console.log('sending', msg);
+            ws.send(JSON.stringify(msg));
+            $("#notificationPanel").animate({width: 'toggle'});
+        }
+    });
+
 });
 
 

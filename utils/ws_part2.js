@@ -192,6 +192,27 @@ module.exports.process_msg = function (socket, data) {
                 console.log(TAG, 'Queued transfer_paper job complete');
         });
     }
+    else if (data.type == 'renew_license') {
+
+        console.log(TAG, 'renewing license:', data.renewlicense);
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.renewLicense(data.user, data.renewlicense, function (err, result) {
+                if (err != null) {
+                    console.error(TAG, 'Error in renew_license. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'renewed license. No response will be sent result:', result);
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued renew_license error:', err.message);
+            else
+                console.log(TAG, 'Queued renew_license job complete');
+        });
+    }
     else if (data.type == 'get_company') {
 
         console.log(TAG, 'getting company information');

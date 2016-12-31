@@ -188,6 +188,26 @@ CPChaincode.prototype.transferPaper = function(enrollID, paper, cb) {
     });
 };
 
+CPChaincode.prototype.renewLicense = function(enrollID, renewlicense, cb) {
+    console.log(TAG, 'renewing driver license');
+
+    var renewLicenseRequest = {
+        chaincodeID: this.chaincodeID,
+        fcn: 'renewLicense',
+        args: [JSON.stringify(renewLicense)]
+    };
+
+    invoke(this.chain, enrollID, renewLicenseRequest, function(err, result) {
+        if(err) {
+            console.error(TAG, 'failed to renew license:', err);
+            return cb(err);
+        }
+
+        console.log(TAG, 'Renewed License successfully:', result.toString());
+        cb(null, result);
+    });
+};
+
 /**
  * Query the chaincode for the full list of commercial papers.
  * @param enrollID The user that the query should be submitted through.
