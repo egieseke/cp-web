@@ -290,6 +290,7 @@ $(document).on('ready', function () {
 
    //renew license
     $(document).on("click", ".renewLicense", function () {
+        alert("renew license")
          var myDate = new Date(); 
          myDate.setFullYear(myDate.getFullYear() + 2);
         if (user.username) {
@@ -297,6 +298,8 @@ $(document).on('ready', function () {
             //var i = $(this).attr('trade_pos');
             var licenseId = $(this).attr('data_licenseId');
             var driver = $(this).attr('data_driver');
+
+            alert("driver" + driver)
 
             // TODO Map the trade_pos to the correct button
             var msg = {
@@ -312,7 +315,7 @@ $(document).on('ready', function () {
             };
             console.log('sending', msg);
             ws.send(JSON.stringify(msg));
-            $("#notificationPanel").animate({width: 'toggle'});
+            $("#licenseRenewalNotificationPanel").animate({width: 'toggle'});
         }
     });
 

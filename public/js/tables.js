@@ -53,8 +53,8 @@ function renewLicenseButton(disabled, licenseId, driver) {
     button.setAttribute('data_licenseId', licenseId);
     button.setAttribute('data_driver', driver);
     if(disabled) button.disabled = true;
-    //button.classList.add('buyPaper');
-    //button.classList.add('altButton');
+    button.classList.add('renewLicense');
+    button.classList.add('altButton');
 
     var span = document.createElement('span');
     span.classList.add('fa');
@@ -76,8 +76,8 @@ function renewRegistrationButton(disabled, registrationId, owner) {
     button.setAttribute('data_registrationId', registrationId);
     button.setAttribute('data_owner', owner);
     if(disabled) button.disabled = true;
-    //button.classList.add('buyPaper');
-    //button.classList.add('altButton');
+    button.classList.add('renewRegistration');
+    button.classList.add('altButton');
 
     var span = document.createElement('span');
     span.classList.add('fa');

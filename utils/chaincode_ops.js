@@ -194,7 +194,7 @@ CPChaincode.prototype.renewLicense = function(enrollID, renewlicense, cb) {
     var renewLicenseRequest = {
         chaincodeID: this.chaincodeID,
         fcn: 'renewLicense',
-        args: [JSON.stringify(renewLicense)]
+        args: [JSON.stringify(renewlicense)]
     };
 
     invoke(this.chain, enrollID, renewLicenseRequest, function(err, result) {

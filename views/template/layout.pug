@@ -75,11 +75,20 @@ html
 					//});
 					$("#notificationPanel").animate({width:'toggle'});
 				});
+
+				$("#closeLicenseRenewalNotification").click(function(){
+					$("#licenseRenewalNotificationPanel").animate({right:'-=450'}, 500, function(){
+						$(this).hide();
+					});
+					$("#licenseRenewalNotificationPanel").animate({width:'toggle'});
+				});
+				
 				
 				$(".backToHome").click(function(){
 					$(".panel").hide();
 					$("#homePanel").show();
 					$("#notificationPanel").animate({width:'toggle'});
+					$("#licenseRenewalNotificationPanel").animate({width:'toggle'});
 				});
 				
 				//Page refresh show correct panel
@@ -110,7 +119,12 @@ html
 					span.fa.fa-check#noticeIcon
 					#noticeText YOUR TRADE WAS SUBMITTED!
 					button(type="button")#closeNotification OK
-				
+
+				#licenseRenewalNotificationPanel
+					span.fa.fa-check#licenseRenewalNoticeIcon
+					#noticeText YOUR LICENSE RENEWAL WAS SUBMITTED!
+					button(type="button")#closeLicenseRenewalNotification OK		
+
 				#errorNotificationPanel
 					span.fa.fa-minus-circle#errorNoticeIcon
 					h2#errorName Error
