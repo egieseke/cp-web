@@ -146,7 +146,7 @@ function registration_to_entries(registration) {
             vin: registration.vin,
             testId: registration.testId,
             policyId: registration.policyId,
-            owner: registration.driver,
+            owner: registration.owner,
             issueDate: registration.issueDate,
             expiryDate: registration.expiryDate
         };

@@ -144,14 +144,13 @@ $(document).on('ready', function () {
                 alert(JSON.stringify(obj));
                 ws.send(JSON.stringify(obj));
                 $(".panel").hide();
-                //$("#licensePanel").show();
+                $("#licensePanel").show();
             }
    });
 
    $("#submit").click(function () {
         alert("hello");
         if (user.username) {
-          if( escapeHtml($("input[name='form-name']").val()) === 'issue-title') {
 	    
             var obj = {
                 type: "create",
@@ -181,31 +180,7 @@ $(document).on('ready', function () {
                 $(".panel").hide();
                 $("#titlePanel").show();
 	    }
-          }
-          if( escapeHtml($("input[name='form-name']").val()) === 'issue-driver-license') {
-            var obj = {
-                type: "create",
-                license: {
-                    testId: escapeHtml($("input[name='roadTestReceiptId']").val()),
-                    address: escapeHtml($("input[name='address']").val()),
-                    city: escapeHtml($("input[name='city']").val()),
-                    state: escapeHtml($("input[name='state']").val()),
-                    zip: escapeHtml($("input[name='zip']").val()),
-                    driver: user.name,
-                    issueDate: Date.now().toString(),
-                    expiryDate: Date.now().toString()
-                },
-                user: user.username
-            };
-            if (obj.license && obj.license.testId) {
-                console.log('creating license, sending', obj);
-                alert(JSON.stringify(obj));
-               // ws.send(JSON.stringify(obj));
-                $(".panel").hide();
-               // $("#licensePanel").show();
-            }
-
-          }
+          
         }
         return false;
     });
@@ -387,12 +362,15 @@ function connect_to_server() {
 			if (data.msg === 'papers') {
 				try{
 					var papers = JSON.parse(data.papers);
+					build_trades(papers, panels[0]);
 					//console.log('!', papers);
+                                        /*
 					if ($('#auditPanel').is){
 						for (var i in panels) {
 							build_trades(papers, panels[i]);
 						}
 					}
+                                       */
 				}
 				catch(e){
 					console.log('cannot parse papers', e);
@@ -445,8 +423,7 @@ function connect_to_server() {
 					var company = JSON.parse(data.company);
 					$("#accountBalance").html(formatMoney(company.cashBalance));
 					$("#accountBalanceLicense").html(formatMoney(company.cashBalance));
- 					$("#accountBalanceRegistration").html(formatMoney(company.cashBalance));
-                    
+					$("#accountBalanceRegistration").html(formatMoney(company.cashBalance));
 				}
 				catch(e){
 					console.log('cannot parse company', e);
@@ -585,13 +562,6 @@ function build_registrations(registrations, panelDesc) {
     }
 }
 
-/**
- * Process the list of trades from the server and displays them in the trade list.
- * This function builds the tables for multiple panels, so an object is needed to
- * identify which table it should be drawing to.
- * @param papers The list of trades to display.
- * @param panelDesc An object describing what panel the trades are being shown in.
- */
 function build_licenses(licenses, panelDesc) {
 
     if (licenses && licenses.length > 0) {
@@ -748,7 +718,7 @@ function build_trades(papers, panelDesc) {
                     style && row.classList.add(style);
 
                     // Only the trade panel should allow you to interact with trades
-                    if (panelDesc.name === "trade") {
+                    if (panelDesc.name === "title") {
                         var disabled = false;
                         if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) disabled = false;			//cannot buy my own stuff
                         //if (entries[i].issuer.toLowerCase() !== entries[i].owner.toLowerCase()) disabled = true;
