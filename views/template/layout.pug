@@ -82,6 +82,13 @@ html
 					});
 					$("#licenseRenewalNotificationPanel").animate({width:'toggle'});
 				});
+
+				$("#closeRegistrationRenewalNotification").click(function(){
+					$("#registrationRenewalNotificationPanel").animate({right:'-=450'}, 500, function(){
+						$(this).hide();
+					});
+					$("#registrationRenewalNotificationPanel").animate({width:'toggle'});
+				});
 				
 				
 				$(".backToHome").click(function(){
@@ -121,9 +128,14 @@ html
 					button(type="button")#closeNotification OK
 
 				#licenseRenewalNotificationPanel
-					span.fa.fa-check#licenseRenewalNoticeIcon
+					span.fa.fa-check#noticeIcon
 					#noticeText YOUR LICENSE RENEWAL WAS SUBMITTED!
 					button(type="button")#closeLicenseRenewalNotification OK		
+
+				#registrationRenewalNotificationPanel
+					span.fa.fa-check#noticeIcon
+					#noticeText YOUR REGISTRATION RENEWAL WAS SUBMITTED!
+					button(type="button")#closeRegistrationRenewalNotification OK		
 
 				#errorNotificationPanel
 					span.fa.fa-minus-circle#errorNoticeIcon

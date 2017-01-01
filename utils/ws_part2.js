@@ -213,6 +213,27 @@ module.exports.process_msg = function (socket, data) {
                 console.log(TAG, 'Queued renew_license job complete');
         });
     }
+    else if (data.type == 'renew_registration') {
+
+        console.log(TAG, 'renewing registration:', data.renewregistration);
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.renewRegistration(data.user, data.renewregistration, function (err, result) {
+                if (err != null) {
+                    console.error(TAG, 'Error in renew_registration. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'renewed registration. No response will be sent result:', result);
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued renew_registration error:', err.message);
+            else
+                console.log(TAG, 'Queued renew_registration job complete');
+        });
+    }
     else if (data.type == 'get_company') {
 
         console.log(TAG, 'getting company information');

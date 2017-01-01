@@ -319,6 +319,35 @@ $(document).on('ready', function () {
         }
     });
 
+    //renew registration
+    $(document).on("click", ".renewRegistration", function () {
+        alert("renew registration")
+         var myDate = new Date();
+         myDate.setFullYear(myDate.getFullYear() + 2);
+        if (user.username) {
+            console.log('renewing registration...');
+            var registrationId = $(this).attr('data_registrationId');
+            var owner = $(this).attr('data_owner');
+
+            alert("driver" + owner)
+
+            var msg = {
+                type: 'renew_registration',
+                renewregistration: {
+                    txId: Date.now().toString(),
+                    registrationId: registrationId,
+                    owner: owner,
+                    issueDate: Date.now().toString(),
+                    expiryDate: myDate.toString()
+                },
+                user: user.username
+            };
+            console.log('sending', msg);
+            ws.send(JSON.stringify(msg));
+            $("#registrationRenewalNotificationPanel").animate({width: 'toggle'});
+        }
+    });
+
 });
 
 
@@ -370,7 +399,7 @@ function connect_to_server() {
         $("#errorNotificationPanel").fadeOut();
         ws.send(JSON.stringify({type: "chainstats", v: 2, user: user.username}));
         ws.send(JSON.stringify({type: "get_papers", v: 2, user: user.username}));
-        ws.send(JSON.stringify({type: "get_licenses", v: 2, user: user.username}));
+        //ws.send(JSON.stringify({type: "get_licenses", v: 2, user: user.username}));
         //ws.send(JSON.stringify({type: "get_registrations", v: 2, user: user.username}));
         if (user.name && user.role !== "auditor") {
             ws.send(JSON.stringify({type: 'get_company', company: user.name, user: user.username}));

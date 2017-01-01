@@ -72,7 +72,6 @@ function renewLicenseButton(disabled, licenseId, driver) {
 function renewRegistrationButton(disabled, registrationId, owner) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');
-    button.setAttribute('href', '#registrationModal');
     button.setAttribute('data_registrationId', registrationId);
     button.setAttribute('data_owner', owner);
     if(disabled) button.disabled = true;

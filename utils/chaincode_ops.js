@@ -208,6 +208,25 @@ CPChaincode.prototype.renewLicense = function(enrollID, renewlicense, cb) {
     });
 };
 
+CPChaincode.prototype.renewRegistration = function(enrollID, renewregistration, cb) {
+    console.log(TAG, 'renewing driver registration');
+
+    var renewRegistrationRequest = {
+        chaincodeID: this.chaincodeID,
+        fcn: 'renewRegistration',
+        args: [JSON.stringify(renewregistration)]
+    };
+
+    invoke(this.chain, enrollID, renewRegistrationRequest, function(err, result) {
+        if(err) {
+            console.error(TAG, 'failed to renew registration:', err);
+            return cb(err);
+        }
+
+        console.log(TAG, 'Renewed registration successfully:', result.toString());
+        cb(null, result);
+    });
+};
 /**
  * Query the chaincode for the full list of commercial papers.
  * @param enrollID The user that the query should be submitted through.
