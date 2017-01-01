@@ -97,12 +97,13 @@ function paper_to_entries(paper) {
         // Create a row for each valid trade
         var entry = {
             issueDate: paper.issueDate,
-            cusip: paper.cusip,
-            ticker: paper.ticker,
-            par: paper.par,
-            quantity: paper.owner[owner].quantity,
-            discount: paper.discount,
-            maturity: paper.maturity,
+            vin: paper.cusip,
+            make: paper.make,
+            model: paper.model,
+            year: paper.year,
+            color: paper.color,
+            miles: paper.miles,
+            value: paper.value,
             issuer: paper.issuer,
             owner: paper.owner[owner].company
         };

@@ -745,7 +745,6 @@ function build_trades(papers, panelDesc) {
         for (var i in entries) {
             console.log('!', entries[i]);
 
-            if (entries[i].quantity > 0) {													//cannot buy when there are none
 
                 if (excluded(entries[i], filter)) {
                     var style;
@@ -760,15 +759,17 @@ function build_trades(papers, panelDesc) {
                         style = 'invalid';
                     }
 
+                    console.log("Vehicle data " + entries[i].toString());
                     // Create a row for each valid trade
                     var data = [
                         formatDate(Number(entries[i].issueDate), '%M/%d %I:%m%P'),
-                        entries[i].cusip,
-                        escapeHtml(entries[i].ticker.toUpperCase()),
-                        formatMoney(entries[i].par),
-                        entries[i].quantity,
-                        entries[i].discount,
-                        entries[i].maturity,
+                        entries[i].vin,
+                        entries[i].make,
+                        entries[i].model,
+                        entries[i].year,
+                        entries[i].color,
+                        entries[i].miles,
+                        entries[i].value,
                         entries[i].issuer,
                         entries[i].owner
                     ];
@@ -786,7 +787,7 @@ function build_trades(papers, panelDesc) {
                     }
                     rows.push(row);
                 }
-            }
+            
 
         }
 
