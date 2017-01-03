@@ -46,7 +46,7 @@ module.exports.process_msg = function (socket, data) {
 
     if (data.type == 'create') {
 
-        if (data.paper && data.paper.ticker) {
+        if (data.paper && data.paper.vin) {
             console.log(TAG, 'creating paper:', data.paper);
             chaincodeHelper.queue.push(function (cb) {
                 chaincodeHelper.createPaper(data.user, data.paper, function (err, result) {

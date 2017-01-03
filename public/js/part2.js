@@ -160,14 +160,9 @@ $(document).on('ready', function () {
                     color: escapeHtml($("select[name='vehicle-color']").val()),
                     miles: Number($("input[name='vehicle-miles']").val()),
                     value: Number($("input[name='vehicle-value']").val()),
-                    owner: [],
+                    owner: user.name,
                     issuer: user.name,
-                    issueDate: Date.now().toString(),
-                    ticker: escapeHtml($("input[name='assetId']").val()), 
-                    par: 1,
-                    qty: 1,
-                    discount: 1,
-                    maturity: (new Date()).getTime()
+                    issueDate: Date.now().toString()
                 }, 
                 user: user.username
             };
@@ -264,21 +259,21 @@ $(document).on('ready', function () {
     //trade events
     $(document).on("click", ".buyPaper", function () {
         if (user.username) {
-            console.log('trading...');
-            var i = $(this).attr('trade_pos');
-            var cusip = $(this).attr('data_cusip');
+            console.log('transfer title...');
+            var cusip = $(this).attr('data_vin');
             var issuer = $(this).attr('data_issuer');
+            var newOwner = 'dealer2';
+            var amountPaid = 100.10
 
             // TODO Map the trade_pos to the correct button
             var msg = {
                 type: 'transfer_paper',
                 transfer: {
-                    //CUSIP: bag.papers[i].cusip,
-                    //fromCompany: bag.papers[i].issuer,
-                    CUSIP: cusip,
-                    fromCompany: issuer,
-                    toCompany: user.name,
-                    quantity: 1
+                    vin: vin,
+                    fromOwner: issuer,
+                    toOwner: newOwner,
+                    issueDate: Date.now().toString(),
+                    amountPaid: amountPaid
                 },
                 user: user.username
             };
@@ -323,7 +318,7 @@ $(document).on('ready', function () {
     $(document).on("click", ".renewRegistration", function () {
         alert("renew registration")
          var myDate = new Date();
-         myDate.setFullYear(myDate.getFullYear() + 2);
+         myDate.setFullYear(myDate.getFullYear() + 4);
         if (user.username) {
             console.log('renewing registration...');
             var registrationId = $(this).attr('data_registrationId');
@@ -782,7 +777,7 @@ function build_trades(papers, panelDesc) {
                         var disabled = false;
                         if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) disabled = false;			//cannot buy my own stuff
                         //if (entries[i].issuer.toLowerCase() !== entries[i].owner.toLowerCase()) disabled = true;
-                        var button = buyButton(disabled, entries[i].cusip, entries[i].issuer);
+                        var button = buyButton(disabled, entries[i].vin, entries[i].issuer);
                         row.appendChild(button);
                     }
                     rows.push(row);

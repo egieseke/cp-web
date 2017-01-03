@@ -1,0 +1,26 @@
+#transfer-vehiclePanel(hidden).panel
+	h1 Vehicle Ownership Transfer
+	hr
+	
+	#innerWrap
+		span.fa.fa-file-text-o(style="font-size: 250px; float:left;")
+		
+		form(action="/create" method="POST")#fooform
+
+			legend 
+				input(type="text" name="assetId" placeholder="VIN")
+			legend
+				select(name="amount")
+					option(value="200") 2-axle: 200 DHS
+					option(value="300") 4-axle: 300 DHS
+					option(value="500") commercial: 500 DHS
+				span.hint FEE
+
+			legend 
+				input(type="text" name="description" placeholder="Details")
+
+			legend
+				button(type="button" style="margin:5px;")#submit
+					span.fa.fa-check &nbsp;&nbsp;
+					span CREATE
+				

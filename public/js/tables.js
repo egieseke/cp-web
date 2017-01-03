@@ -93,11 +93,10 @@ function renewRegistrationButton(disabled, registrationId, owner) {
 
 function paper_to_entries(paper) {
     var entries = [];
-    for (var owner in paper.owner) {
         // Create a row for each valid trade
         var entry = {
             issueDate: paper.issueDate,
-            vin: paper.cusip,
+            vin: paper.vin,
             make: paper.make,
             model: paper.model,
             year: paper.year,
@@ -105,14 +104,13 @@ function paper_to_entries(paper) {
             miles: paper.miles,
             value: paper.value,
             issuer: paper.issuer,
-            owner: paper.owner[owner].company
+            owner: paper.owner
         };
 
         // Save which paper this is associated with
         entry.paper = paper;
         
         entries.push(entry);
-    }
     return entries;
 }
 

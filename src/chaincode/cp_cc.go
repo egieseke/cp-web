@@ -73,10 +73,6 @@ func msToTime(ms string) (time.Time, error) {
 		(msInt%millisPerSecond)*nanosPerMillisecond), nil
 }
 
-type Owner struct {
-	Company  string `json:"company"`
-	Quantity int    `json:"quantity"`
-}
 type VehicleRegistration struct {
 	RegistrationId string `json:"registrationId"`
 	PlateNum       string `json:"plateNum"`
@@ -101,20 +97,14 @@ type DriverLicense struct {
 }
 
 type CP struct {
-	CUSIP     string  `json:"cusip"`
-	VIN       string  `json:"assetId"`
+	VIN       string  `json:"vin"`
 	Make      string  `json:"make"`
 	Model     string  `json:"model"`
 	Year      int     `json:"year"`
 	Color     string  `json:"color"`
 	Miles     int     `json:"miles"`
 	Value     float64 `json:"value"`
-	Ticker    string  `json:"ticker"`
-	Par       float64 `json:"par"`
-	Qty       int     `json:"qty"`
-	Discount  float64 `json:"discount"`
-	Maturity  int     `json:"maturity"`
-	Owners    []Owner `json:"owner"`
+	Owner    string `json:"owner"`
 	Issuer    string  `json:"issuer"`
 	IssueDate string  `json:"issueDate"`
 }
@@ -142,12 +132,12 @@ type RenewRegistrationTx struct {
 	ExpiryDate string `json:"expiryDate"`
 }
 
-type Transaction struct {
-	CUSIP       string  `json:"cusip"`
-	FromCompany string  `json:"fromCompany"`
-	ToCompany   string  `json:"toCompany"`
-	Quantity    int     `json:"quantity"`
-	Discount    float64 `json:"discount"`
+type TransferTitleTx struct {
+	VIN         string  `json:"vin"`
+	FromOwner string  `json:"fromOwner"`
+	ToOwner string  `json:"toOwner"`
+	IssueDate  string `json:"issueDate"`
+        AmountPaid  float64 `json:"amountPaid"`
 }
 
 func (t *SimpleChaincode) createAccounts(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
@@ -173,7 +163,7 @@ func (t *SimpleChaincode) createAccounts(stub shim.ChaincodeStubInterface, args 
 			prefix = strconv.Itoa(counter) + suffix
 		}
 		var assetIds []string
-		account = Account{ID: "company" + strconv.Itoa(counter), Prefix: prefix, CashBalance: 10000000.0, AssetsIds: assetIds}
+		account = Account{ID: "company" + strconv.Itoa(counter), Prefix: prefix, CashBalance: 10000.0, AssetsIds: assetIds}
 		accountBytes, err := json.Marshal(&account)
 		if err != nil {
 			fmt.Println("error creating account" + account.ID)
@@ -203,7 +193,7 @@ func (t *SimpleChaincode) createAccount(stub shim.ChaincodeStubInterface, args [
 	var assetIds []string
 	suffix := "000A"
 	prefix := username + suffix
-	var account = Account{ID: username, Prefix: prefix, CashBalance: 10000000.0, AssetsIds: assetIds}
+	var account = Account{ID: username, Prefix: prefix, CashBalance: 10000.0, AssetsIds: assetIds}
 	accountBytes, err := json.Marshal(&account)
 	if err != nil {
 		fmt.Println("error creating account" + account.ID)
@@ -298,7 +288,6 @@ func (t *SimpleChaincode) issueVehicleRegistration(stub shim.ChaincodeStubInterf
 		return nil, errors.New("Invalid VehicleRegistration issue")
 	}
 
-	//generate the CUSIP
 	//get account prefix
 	fmt.Println("Getting state of - " + accountPrefix + registration.Owner)
 	accountBytes, err := stub.GetState(accountPrefix + registration.Owner)
@@ -312,7 +301,6 @@ func (t *SimpleChaincode) issueVehicleRegistration(stub shim.ChaincodeStubInterf
 		return nil, errors.New("Error retrieving account " + registration.Owner)
 	}
 
-	//TODO CUSIP generation ?
 	account.AssetsIds = append(account.AssetsIds, registration.RegistrationId)
 
 	var govaccount Account
@@ -330,23 +318,6 @@ func (t *SimpleChaincode) issueVehicleRegistration(stub shim.ChaincodeStubInterf
 	account.CashBalance -= 40
 	govaccount.CashBalance += 40
 
-	/*
-		// Set the issuer to be the owner of all quantity
-		var owner Owner
-		owner.Company = cp.Issuer
-		owner.Quantity = cp.Qty
-
-		cp.Owners = append(cp.Owners, owner)
-
-
-		suffix, err := generateCUSIPSuffix(license.IssueDate, license.ExpiryDate)
-		if err != nil {
-			fmt.Println("Error generating licenseId")
-			return nil, errors.New("Error generating driver license Id")
-		}
-		fmt.Println("Marshalling DriverLicense bytes")
-		license.LicenseId = license.Prefix + suffix
-	*/
 
 	fmt.Println("Getting State on Vehicle Registration" + registration.RegistrationId)
 	cpRxBytes, err := stub.GetState(registrationPrefix + registration.RegistrationId)
@@ -447,7 +418,6 @@ func (t *SimpleChaincode) issueDriverLicense(stub shim.ChaincodeStubInterface, a
 		return nil, errors.New("Invalid driver license issue")
 	}
 
-	//generate the CUSIP
 	//get account prefix
 	fmt.Println("Getting state of - " + accountPrefix + license.Driver)
 	accountBytes, err := stub.GetState(accountPrefix + license.Driver)
@@ -461,7 +431,6 @@ func (t *SimpleChaincode) issueDriverLicense(stub shim.ChaincodeStubInterface, a
 		return nil, errors.New("Error retrieving account " + license.Driver)
 	}
 
-	//TODO CUSIP generation ?
 	account.AssetsIds = append(account.AssetsIds, license.LicenseId)
 
 	var govaccount Account
@@ -479,23 +448,6 @@ func (t *SimpleChaincode) issueDriverLicense(stub shim.ChaincodeStubInterface, a
 	account.CashBalance -= 50
 	govaccount.CashBalance += 50
 
-	/*
-		// Set the issuer to be the owner of all quantity
-		var owner Owner
-		owner.Company = cp.Issuer
-		owner.Quantity = cp.Qty
-
-		cp.Owners = append(cp.Owners, owner)
-
-
-		suffix, err := generateCUSIPSuffix(license.IssueDate, license.ExpiryDate)
-		if err != nil {
-			fmt.Println("Error generating licenseId")
-			return nil, errors.New("Error generating driver license Id")
-		}
-		fmt.Println("Marshalling DriverLicense bytes")
-		license.LicenseId = license.Prefix + suffix
-	*/
 
 	fmt.Println("Getting State on Driver License" + license.LicenseId)
 	cpRxBytes, err := stub.GetState(licensePrefix + license.LicenseId)
@@ -576,13 +528,20 @@ func (t *SimpleChaincode) issueDriverLicense(stub shim.ChaincodeStubInterface, a
 	return nil, nil
 }
 
-func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	fmt.Println("Creating commercial paper")
-
+/* 
+asset: new title object: owner=issuer
+tx fee deducted from issuer and added to gov
+Account: assetId list updated
+Error: if vin already exists - throw error 
+Todo: Account has enough money
+*/
+func (t *SimpleChaincode) issueVehicleTitle(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	fmt.Println("Creating vehicle title")
+        var titleFee = 30.0
 	//need one arg
 	if len(args) != 1 {
 		fmt.Println("error invalid arguments")
-		return nil, errors.New("Incorrect number of arguments. Expecting commercial paper record")
+		return nil, errors.New("Incorrect number of arguments. Expecting title record")
 	}
 
 	var cp CP
@@ -596,7 +555,6 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 		return nil, errors.New("Invalid commercial paper issue")
 	}
 
-	//generate the CUSIP
 	//get account prefix
 	fmt.Println("Getting state of - " + accountPrefix + cp.Issuer)
 	accountBytes, err := stub.GetState(accountPrefix + cp.Issuer)
@@ -610,7 +568,7 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 		return nil, errors.New("Error retrieving account " + cp.Issuer)
 	}
 
-	account.AssetsIds = append(account.AssetsIds, cp.CUSIP)
+	account.AssetsIds = append(account.AssetsIds, cp.VIN)
 
 	var govaccount Account
 	govaccountBytes, err := stub.GetState(accountPrefix + "government")
@@ -623,62 +581,49 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 		fmt.Println("Error Unmarshalling govaccountBytes")
 		return nil, errors.New("Error retrieving account acct:government")
 	}
+
 	//deduct fee from account
-	account.CashBalance -= 30
-	govaccount.CashBalance += 30
+	account.CashBalance -= titleFee
+	govaccount.CashBalance += titleFee
 
-	// Set the issuer to be the owner of all quantity
-	var owner Owner
-	owner.Company = cp.Issuer
-	owner.Quantity = cp.Qty
+	cp.Owner = cp.Issuer
 
-	cp.Owners = append(cp.Owners, owner)
-
-	suffix, err := generateCUSIPSuffix(cp.IssueDate, cp.Maturity)
-	if err != nil {
-		fmt.Println("Error generating cusip")
-		return nil, errors.New("Error generating CUSIP")
-	}
-
-	fmt.Println("Marshalling CP bytes")
-	cp.CUSIP = account.Prefix + suffix
-
-	fmt.Println("Getting State on CP " + cp.CUSIP)
-	cpRxBytes, err := stub.GetState(vehiclePrefix + cp.CUSIP)
+	fmt.Println("Getting State on CP " + cp.VIN)
+	cpRxBytes, err := stub.GetState(vehiclePrefix + cp.VIN)
 	if cpRxBytes == nil {
-		fmt.Println("CUSIP does not exist, creating it")
+		fmt.Println("VIN does not exist, creating it")
 		cpBytes, err := json.Marshal(&cp)
 		if err != nil {
 			fmt.Println("Error marshalling cp")
-			return nil, errors.New("Error issuing commercial paper")
+			return nil, errors.New("Error issuing title")
 		}
-		err = stub.PutState(vehiclePrefix+cp.CUSIP, cpBytes)
+		err = stub.PutState(vehiclePrefix+cp.VIN, cpBytes)
 		if err != nil {
-			fmt.Println("Error issuing paper")
-			return nil, errors.New("Error issuing commercial paper")
+			fmt.Println("Error issuing title")
+			return nil, errors.New("Error issuing title")
 		}
 
 		fmt.Println("Marshalling account bytes to write")
 		accountBytesToWrite, err := json.Marshal(&account)
 		if err != nil {
 			fmt.Println("Error marshalling account")
-			return nil, errors.New("Error issuing commercial paper")
+			return nil, errors.New("Error issuing title")
 		}
 		err = stub.PutState(accountPrefix+cp.Issuer, accountBytesToWrite)
 		if err != nil {
 			fmt.Println("Error putting state on accountBytesToWrite")
-			return nil, errors.New("Error issuing commercial paper")
+			return nil, errors.New("Error issuing title")
 		}
 
 		govaccountBytesToWrite, err := json.Marshal(&govaccount)
 		if err != nil {
 			fmt.Println("Error marshalling govt account")
-			return nil, errors.New("Error issuing commercial paper")
+			return nil, errors.New("Error issuing title")
 		}
 		err = stub.PutState(accountPrefix+"government", govaccountBytesToWrite)
 		if err != nil {
 			fmt.Println("Error putting state on govaccountBytesToWrite")
-			return nil, errors.New("Error issuing commercial paper")
+			return nil, errors.New("Error issuing title")
 		}
 
 		// Update the title keys by adding the new key
@@ -698,12 +643,12 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 		fmt.Println("Appending the new key to Title Keys")
 		foundKey := false
 		for _, key := range keys {
-			if key == vehiclePrefix+cp.CUSIP {
+			if key == vehiclePrefix+cp.VIN{
 				foundKey = true
 			}
 		}
 		if foundKey == false {
-			keys = append(keys, vehiclePrefix+cp.CUSIP)
+			keys = append(keys, vehiclePrefix+cp.VIN)
 			keysBytesToWrite, err := json.Marshal(&keys)
 			if err != nil {
 				fmt.Println("Error marshalling keys")
@@ -720,38 +665,8 @@ func (t *SimpleChaincode) issueCommercialPaper(stub shim.ChaincodeStubInterface,
 		fmt.Println("Issue commercial paper", cp)
 		return nil, nil
 	} else {
-		fmt.Println("CUSIP exists")
-
-		var cprx CP
-		fmt.Println("Unmarshalling CP " + cp.CUSIP)
-		err = json.Unmarshal(cpRxBytes, &cprx)
-		if err != nil {
-			fmt.Println("Error unmarshalling cp " + cp.CUSIP)
-			return nil, errors.New("Error unmarshalling cp " + cp.CUSIP)
-		}
-
-		cprx.Qty = cprx.Qty + cp.Qty
-
-		for key, val := range cprx.Owners {
-			if val.Company == cp.Issuer {
-				cprx.Owners[key].Quantity += cp.Qty
-				break
-			}
-		}
-
-		cpWriteBytes, err := json.Marshal(&cprx)
-		if err != nil {
-			fmt.Println("Error marshalling cp")
-			return nil, errors.New("Error issuing commercial paper")
-		}
-		err = stub.PutState(vehiclePrefix+cp.CUSIP, cpWriteBytes)
-		if err != nil {
-			fmt.Println("Error issuing paper")
-			return nil, errors.New("Error issuing commercial paper")
-		}
-
-		fmt.Println("Updated commercial paper", cprx)
-		return nil, nil
+		fmt.Println("Error VIN exists")
+	        return nil, errors.New("Error issuing title")
 	}
 }
 func GetAllDriverLicenses(stub shim.ChaincodeStubInterface) ([]DriverLicense, error) {
@@ -894,7 +809,7 @@ func GetCompany(companyID string, stub shim.ChaincodeStubInterface) (Account, er
 }
 
 func (t *SimpleChaincode) renewRegistration(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	var registrationRenewalFee float64 = 80
+	var registrationRenewalFee float64 = 40
 	fmt.Println("Renewing Registration")
 	//need one arg
 	if len(args) != 1 {
@@ -917,10 +832,10 @@ func (t *SimpleChaincode) renewRegistration(stub shim.ChaincodeStubInterface, ar
 	}
 
 	var cp VehicleRegistration
-	fmt.Println("Unmarshalling License " + tr.RegistrationId)
+	fmt.Println("Unmarshalling Registration " + tr.RegistrationId)
 	err = json.Unmarshal(cpBytes, &cp)
 	if err != nil {
-		fmt.Println("Error unmarshalling cp " + tr.RegistrationId)
+		fmt.Println("Error unmarshalling registration  " + tr.RegistrationId)
 		return nil, errors.New("Error unmarshalling registration " + tr.RegistrationId)
 	}
 
@@ -954,21 +869,6 @@ func (t *SimpleChaincode) renewRegistration(stub shim.ChaincodeStubInterface, ar
 		return nil, errors.New("Error unmarshalling account " + "government")
 	}
 
-	// // Check for all the possible errors
-	// ownerFound := false
-	// for _, owner := range cp.Owners {
-	// 	if owner.Company == tr.Driver{
-	// 		ownerFound = true
-	// 	}
-	// }
-
-	// // If fromCompany doesn't own this paper
-	// if ownerFound == false {
-	// 	fmt.Println("The company " + tr.FromCompany + "doesn't own any of this paper")
-	// 	return nil, errors.New("The company " + tr.FromCompany + "doesn't own any of this paper")
-	// } else {
-	// 	fmt.Println("The FromCompany does own this paper")
-	// }
 
 	// If toCompany doesn't have enough cash to buy the papers
 	if driver.CashBalance < registrationRenewalFee {
@@ -986,30 +886,6 @@ func (t *SimpleChaincode) renewRegistration(stub shim.ChaincodeStubInterface, ar
 	cp.IssueDate = tr.IssueDate
 	cp.ExpiryDate = tr.ExpiryDate
 
-	// toOwnerFound := false
-	// for key, owner := range cp.Owners {
-	// 	if owner.Company == tr.FromCompany {
-	// 		fmt.Println("Reducing Quantity from the FromCompany")
-	// 		cp.Owners[key].Quantity -= tr.Quantity
-	// 		//			owner.Quantity -= tr.Quantity
-	// 	}
-	// 	if owner.Company == tr.ToCompany {
-	// 		fmt.Println("Increasing Quantity from the ToCompany")
-	// 		toOwnerFound = true
-	// 		cp.Owners[key].Quantity += tr.Quantity
-	// 		//			owner.Quantity += tr.Quantity
-	// 	}
-	// }
-
-	// if toOwnerFound == false {
-	// 	var newOwner Owner
-	// 	fmt.Println("As ToOwner was not found, appending the owner to the CP")
-	// 	newOwner.Quantity = tr.Quantity
-	// 	newOwner.Company = tr.ToCompany
-	// 	cp.Owners = append(cp.Owners, newOwner)
-	// }
-
-	// fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
 
 	// Write everything back
 	// To Company
@@ -1045,7 +921,7 @@ func (t *SimpleChaincode) renewRegistration(stub shim.ChaincodeStubInterface, ar
 		return nil, errors.New("Error marshalling the cp")
 	}
 	fmt.Println("Put state on vehicle registration")
-	err = stub.PutState(licensePrefix+tr.RegistrationId, cpBytesToWrite)
+	err = stub.PutState(registrationPrefix+tr.RegistrationId, cpBytesToWrite)
 	if err != nil {
 		fmt.Println("Error writing the drivers license back")
 		return nil, errors.New("Error writing the owner registration back")
@@ -1116,22 +992,6 @@ func (t *SimpleChaincode) renewLicense(stub shim.ChaincodeStubInterface, args []
 		return nil, errors.New("Error unmarshalling account " + "government")
 	}
 
-	// // Check for all the possible errors
-	// ownerFound := false
-	// for _, owner := range cp.Owners {
-	// 	if owner.Company == tr.Driver{
-	// 		ownerFound = true
-	// 	}
-	// }
-
-	// // If fromCompany doesn't own this paper
-	// if ownerFound == false {
-	// 	fmt.Println("The company " + tr.FromCompany + "doesn't own any of this paper")
-	// 	return nil, errors.New("The company " + tr.FromCompany + "doesn't own any of this paper")
-	// } else {
-	// 	fmt.Println("The FromCompany does own this paper")
-	// }
-
 	// If toCompany doesn't have enough cash to buy the papers
 	if driver.CashBalance < licenseRenewalFee {
 		fmt.Println("The driver " + tr.Driver + "doesn't have enough cash to renew the license")
@@ -1148,30 +1008,6 @@ func (t *SimpleChaincode) renewLicense(stub shim.ChaincodeStubInterface, args []
 	cp.IssueDate = tr.IssueDate
 	cp.ExpiryDate = tr.ExpiryDate
 
-	// toOwnerFound := false
-	// for key, owner := range cp.Owners {
-	// 	if owner.Company == tr.FromCompany {
-	// 		fmt.Println("Reducing Quantity from the FromCompany")
-	// 		cp.Owners[key].Quantity -= tr.Quantity
-	// 		//			owner.Quantity -= tr.Quantity
-	// 	}
-	// 	if owner.Company == tr.ToCompany {
-	// 		fmt.Println("Increasing Quantity from the ToCompany")
-	// 		toOwnerFound = true
-	// 		cp.Owners[key].Quantity += tr.Quantity
-	// 		//			owner.Quantity += tr.Quantity
-	// 	}
-	// }
-
-	// if toOwnerFound == false {
-	// 	var newOwner Owner
-	// 	fmt.Println("As ToOwner was not found, appending the owner to the CP")
-	// 	newOwner.Quantity = tr.Quantity
-	// 	newOwner.Company = tr.ToCompany
-	// 	cp.Owners = append(cp.Owners, newOwner)
-	// }
-
-	// fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
 
 	// Write everything back
 	// To Company
@@ -1217,141 +1053,112 @@ func (t *SimpleChaincode) renewLicense(stub shim.ChaincodeStubInterface, args []
 	return nil, nil
 }
 
-func (t *SimpleChaincode) transferPaper(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	fmt.Println("Transferring Paper")
-	/*		0
-		json
-	  	{
-			  "CUSIP": "",
-			  "fromCompany":"",
-			  "toCompany":"",
-			  "quantity": 1
-		}
-	*/
+/*
+Asset: title  owner=toOwner   
+fee deducted from FromOwner and sent to government
+Account AssetId - Remove from fromOwner & add to toOwner
+Checks: fromOwner is current owner and has enough balance & toOwner exists
+ToDo: remove item from original owner AssetIds array
+*/
+func (t *SimpleChaincode) transferTitle(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	fmt.Println("Transferring Title")
+        var amountToBeTransferred float64 = 30
+
 	//need one arg
 	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting commercial paper record")
+		return nil, errors.New("Incorrect number of arguments. Expecting transfer title record")
 	}
 
-	var tr Transaction
+	var tr TransferTitleTx
 
 	fmt.Println("Unmarshalling Transaction")
 	err := json.Unmarshal([]byte(args[0]), &tr)
 	if err != nil {
 		fmt.Println("Error Unmarshalling Transaction")
-		return nil, errors.New("Invalid commercial paper issue")
+		return nil, errors.New("Invalid transfer title issue")
 	}
 
-	fmt.Println("Getting State on CP " + tr.CUSIP)
-	cpBytes, err := stub.GetState(vehiclePrefix + tr.CUSIP)
+	fmt.Println("Getting State on title " + tr.VIN)
+	cpBytes, err := stub.GetState(vehiclePrefix + tr.VIN)
 	if err != nil {
-		fmt.Println("CUSIP not found")
-		return nil, errors.New("CUSIP not found " + tr.CUSIP)
+		fmt.Println("VIN not found")
+		return nil, errors.New("VIN not found " + tr.VIN)
 	}
 
 	var cp CP
-	fmt.Println("Unmarshalling CP " + tr.CUSIP)
+	fmt.Println("Unmarshalling Title " + tr.VIN)
 	err = json.Unmarshal(cpBytes, &cp)
 	if err != nil {
-		fmt.Println("Error unmarshalling cp " + tr.CUSIP)
-		return nil, errors.New("Error unmarshalling cp " + tr.CUSIP)
+		fmt.Println("Error unmarshalling title" + tr.VIN)
+		return nil, errors.New("Error unmarshalling title " + tr.VIN)
 	}
 
 	var fromCompany Account
-	fmt.Println("Getting State on fromCompany " + tr.FromCompany)
-	fromCompanyBytes, err := stub.GetState(accountPrefix + tr.FromCompany)
+	fmt.Println("Getting State on fromOwner " + tr.FromOwner)
+	fromCompanyBytes, err := stub.GetState(accountPrefix + tr.FromOwner)
 	if err != nil {
-		fmt.Println("Account not found " + tr.FromCompany)
-		return nil, errors.New("Account not found " + tr.FromCompany)
+		fmt.Println("Account not found " + tr.FromOwner)
+		return nil, errors.New("Account not found " + tr.FromOwner)
 	}
 
-	fmt.Println("Unmarshalling FromCompany ")
+	fmt.Println("Unmarshalling FromOwner")
 	err = json.Unmarshal(fromCompanyBytes, &fromCompany)
 	if err != nil {
-		fmt.Println("Error unmarshalling account " + tr.FromCompany)
-		return nil, errors.New("Error unmarshalling account " + tr.FromCompany)
+		fmt.Println("Error unmarshalling account " + tr.FromOwner)
+		return nil, errors.New("Error unmarshalling account " + tr.FromOwner)
 	}
 
 	var toCompany Account
-	fmt.Println("Getting State on ToCompany " + tr.ToCompany)
-	toCompanyBytes, err := stub.GetState(accountPrefix + tr.ToCompany)
+	fmt.Println("Getting State on ToOwner " + tr.ToOwner)
+	toCompanyBytes, err := stub.GetState(accountPrefix + tr.ToOwner)
 	if err != nil {
-		fmt.Println("Account not found " + tr.ToCompany)
-		return nil, errors.New("Account not found " + tr.ToCompany)
+		fmt.Println("Account not found " + tr.ToOwner)
+		return nil, errors.New("Account not found " + tr.ToOwner)
 	}
 
-	fmt.Println("Unmarshalling tocompany")
+	fmt.Println("Unmarshalling toOwner")
 	err = json.Unmarshal(toCompanyBytes, &toCompany)
 	if err != nil {
-		fmt.Println("Error unmarshalling account " + tr.ToCompany)
-		return nil, errors.New("Error unmarshalling account " + tr.ToCompany)
-	}
-
-	// Check for all the possible errors
-	ownerFound := false
-	quantity := 0
-	for _, owner := range cp.Owners {
-		if owner.Company == tr.FromCompany {
-			ownerFound = true
-			quantity = owner.Quantity
-		}
+		fmt.Println("Error unmarshalling account " + tr.ToOwner)
+		return nil, errors.New("Error unmarshalling account " + tr.ToOwner)
 	}
 
 	// If fromCompany doesn't own this paper
-	if ownerFound == false {
-		fmt.Println("The company " + tr.FromCompany + "doesn't own any of this paper")
-		return nil, errors.New("The company " + tr.FromCompany + "doesn't own any of this paper")
+	if cp.Owner != tr.FromOwner {
+		fmt.Println("The owner " + tr.FromOwner+ " doesn't own this title/vehicle")
+		return nil, errors.New("The owner " + tr.FromOwner+ "doesn't own this title/vehicle")
 	} else {
-		fmt.Println("The FromCompany does own this paper")
+		fmt.Println("The FromOwner does own this title/vehicle")
 	}
 
-	// If fromCompany doesn't own enough quantity of this paper
-	if quantity < tr.Quantity {
-		fmt.Println("The company " + tr.FromCompany + "doesn't own enough of this paper")
-		return nil, errors.New("The company " + tr.FromCompany + "doesn't own enough of this paper")
+
+	if fromCompany.CashBalance < amountToBeTransferred {
+		fmt.Println("The owner " + tr.FromOwner+ "doesn't have enough cash to transfer the title")
+		return nil, errors.New("The owner " + tr.FromOwner + "doesn't have enough cash to transfer the title")
 	} else {
-		fmt.Println("The FromCompany owns enough of this paper")
+		fmt.Println("The From Owner has enough money to transfer title")
 	}
 
-	amountToBeTransferred := float64(tr.Quantity) * cp.Par
-	amountToBeTransferred -= (amountToBeTransferred) * (cp.Discount / 100.0) * (float64(cp.Maturity) / 360.0)
+        var govaccount Account
+        govaccountBytes, err := stub.GetState(accountPrefix + "government")
+        if err != nil {
+                fmt.Println("Error Getting state of - " + accountPrefix + "government")
+                return nil, errors.New("Error retrieving account acct:government ")
+        }
+        err = json.Unmarshal(govaccountBytes, &govaccount)
+        if err != nil {
+                fmt.Println("Error Unmarshalling govaccountBytes")
+                return nil, errors.New("Error retrieving account acct:government")
+        }
 
-	// If toCompany doesn't have enough cash to buy the papers
-	if toCompany.CashBalance < amountToBeTransferred {
-		fmt.Println("The company " + tr.ToCompany + "doesn't have enough cash to purchase the papers")
-		return nil, errors.New("The company " + tr.ToCompany + "doesn't have enough cash to purchase the papers")
-	} else {
-		fmt.Println("The ToCompany has enough money to be transferred for this paper")
-	}
+	fromCompany.CashBalance -= amountToBeTransferred
+	govaccount.CashBalance += amountToBeTransferred
 
-	toCompany.CashBalance -= amountToBeTransferred
-	fromCompany.CashBalance += amountToBeTransferred
-
-	toOwnerFound := false
-	for key, owner := range cp.Owners {
-		if owner.Company == tr.FromCompany {
-			fmt.Println("Reducing Quantity from the FromCompany")
-			cp.Owners[key].Quantity -= tr.Quantity
-			//			owner.Quantity -= tr.Quantity
-		}
-		if owner.Company == tr.ToCompany {
-			fmt.Println("Increasing Quantity from the ToCompany")
-			toOwnerFound = true
-			cp.Owners[key].Quantity += tr.Quantity
-			//			owner.Quantity += tr.Quantity
-		}
-	}
-
-	if toOwnerFound == false {
-		var newOwner Owner
-		fmt.Println("As ToOwner was not found, appending the owner to the CP")
-		newOwner.Quantity = tr.Quantity
-		newOwner.Company = tr.ToCompany
-		cp.Owners = append(cp.Owners, newOwner)
-	}
-
-	fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
-
+        cp.Owner = tr.ToOwner
+        //adjust assetIds
+        toCompany.AssetsIds = append(toCompany.AssetsIds, tr.VIN)
+        //TODO fromCompany.AssetsIds = remove(fromCompany.AssetsIds, tr.VIN)
+       
 	// Write everything back
 	// To Company
 	toCompanyBytesToWrite, err := json.Marshal(&toCompany)
@@ -1359,8 +1166,8 @@ func (t *SimpleChaincode) transferPaper(stub shim.ChaincodeStubInterface, args [
 		fmt.Println("Error marshalling the toCompany")
 		return nil, errors.New("Error marshalling the toCompany")
 	}
-	fmt.Println("Put state on toCompany")
-	err = stub.PutState(accountPrefix+tr.ToCompany, toCompanyBytesToWrite)
+	fmt.Println("Put state on toOwner")
+	err = stub.PutState(accountPrefix+tr.ToOwner, toCompanyBytesToWrite)
 	if err != nil {
 		fmt.Println("Error writing the toCompany back")
 		return nil, errors.New("Error writing the toCompany back")
@@ -1372,12 +1179,23 @@ func (t *SimpleChaincode) transferPaper(stub shim.ChaincodeStubInterface, args [
 		fmt.Println("Error marshalling the fromCompany")
 		return nil, errors.New("Error marshalling the fromCompany")
 	}
-	fmt.Println("Put state on fromCompany")
-	err = stub.PutState(accountPrefix+tr.FromCompany, fromCompanyBytesToWrite)
+	fmt.Println("Put state on fromOwner")
+	err = stub.PutState(accountPrefix+tr.FromOwner, fromCompanyBytesToWrite)
 	if err != nil {
 		fmt.Println("Error writing the fromCompany back")
 		return nil, errors.New("Error writing the fromCompany back")
 	}
+        //government
+	govaccountBytesToWrite, err := json.Marshal(&govaccount)
+                if err != nil {
+                        fmt.Println("Error marshalling govt account")
+                        return nil, errors.New("Error issuing driver license")
+                }
+                err = stub.PutState(accountPrefix+"government", govaccountBytesToWrite)
+                if err != nil {
+                        fmt.Println("Error putting state on govaccountBytesToWrite")
+                        return nil, errors.New("Error issuing driver license")
+                }
 
 	// cp
 	cpBytesToWrite, err := json.Marshal(&cp)
@@ -1386,187 +1204,7 @@ func (t *SimpleChaincode) transferPaper(stub shim.ChaincodeStubInterface, args [
 		return nil, errors.New("Error marshalling the cp")
 	}
 	fmt.Println("Put state on CP")
-	err = stub.PutState(vehiclePrefix+tr.CUSIP, cpBytesToWrite)
-	if err != nil {
-		fmt.Println("Error writing the cp back")
-		return nil, errors.New("Error writing the cp back")
-	}
-
-	fmt.Println("Successfully completed Invoke")
-	return nil, nil
-}
-
-// Still working on this one
-func (t *SimpleChaincode) transferPaper1(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	fmt.Println("Transferring Paper")
-	/*		0
-		json
-	  	{
-			  "CUSIP": "",
-			  "fromCompany":"",
-			  "toCompany":"",
-			  "quantity": 1
-		}
-	*/
-	//need one arg
-	if len(args) != 1 {
-		return nil, errors.New("Incorrect number of arguments. Expecting commercial paper record")
-	}
-
-	var tr Transaction
-
-	fmt.Println("Unmarshalling Transaction")
-	err := json.Unmarshal([]byte(args[0]), &tr)
-	if err != nil {
-		fmt.Println("Error Unmarshalling Transaction")
-		return nil, errors.New("Invalid commercial paper issue")
-	}
-
-	fmt.Println("Getting State on CP " + tr.CUSIP)
-	cpBytes, err := stub.GetState(vehiclePrefix + tr.CUSIP)
-	if err != nil {
-		fmt.Println("CUSIP not found")
-		return nil, errors.New("CUSIP not found " + tr.CUSIP)
-	}
-
-	var cp CP
-	fmt.Println("Unmarshalling CP " + tr.CUSIP)
-	err = json.Unmarshal(cpBytes, &cp)
-	if err != nil {
-		fmt.Println("Error unmarshalling cp " + tr.CUSIP)
-		return nil, errors.New("Error unmarshalling cp " + tr.CUSIP)
-	}
-
-	var fromCompany Account
-	fmt.Println("Getting State on fromCompany " + tr.FromCompany)
-	fromCompanyBytes, err := stub.GetState(accountPrefix + tr.FromCompany)
-	if err != nil {
-		fmt.Println("Account not found " + tr.FromCompany)
-		return nil, errors.New("Account not found " + tr.FromCompany)
-	}
-
-	fmt.Println("Unmarshalling FromCompany ")
-	err = json.Unmarshal(fromCompanyBytes, &fromCompany)
-	if err != nil {
-		fmt.Println("Error unmarshalling account " + tr.FromCompany)
-		return nil, errors.New("Error unmarshalling account " + tr.FromCompany)
-	}
-
-	var toCompany Account
-	fmt.Println("Getting State on ToCompany " + tr.ToCompany)
-	toCompanyBytes, err := stub.GetState(accountPrefix + tr.ToCompany)
-	if err != nil {
-		fmt.Println("Account not found " + tr.ToCompany)
-		return nil, errors.New("Account not found " + tr.ToCompany)
-	}
-
-	fmt.Println("Unmarshalling tocompany")
-	err = json.Unmarshal(toCompanyBytes, &toCompany)
-	if err != nil {
-		fmt.Println("Error unmarshalling account " + tr.ToCompany)
-		return nil, errors.New("Error unmarshalling account " + tr.ToCompany)
-	}
-
-	// Check for all the possible errors
-	ownerFound := false
-	quantity := 0
-	for _, owner := range cp.Owners {
-		if owner.Company == tr.FromCompany {
-			ownerFound = true
-			quantity = owner.Quantity
-		}
-	}
-
-	// If fromCompany doesn't own this paper
-	if ownerFound == false {
-		fmt.Println("The company " + tr.FromCompany + "doesn't own any of this paper")
-		return nil, errors.New("The company " + tr.FromCompany + "doesn't own any of this paper")
-	} else {
-		fmt.Println("The FromCompany does own this paper")
-	}
-
-	// If fromCompany doesn't own enough quantity of this paper
-	if quantity < tr.Quantity {
-		fmt.Println("The company " + tr.FromCompany + "doesn't own enough of this paper")
-		return nil, errors.New("The company " + tr.FromCompany + "doesn't own enough of this paper")
-	} else {
-		fmt.Println("The FromCompany owns enough of this paper")
-	}
-
-	amountToBeTransferred := float64(tr.Quantity) * cp.Par
-	amountToBeTransferred -= (amountToBeTransferred) * (cp.Discount / 100.0) * (float64(cp.Maturity) / 360.0)
-
-	// If toCompany doesn't have enough cash to buy the papers
-	if toCompany.CashBalance < amountToBeTransferred {
-		fmt.Println("The company " + tr.ToCompany + "doesn't have enough cash to purchase the papers")
-		return nil, errors.New("The company " + tr.ToCompany + "doesn't have enough cash to purchase the papers")
-	} else {
-		fmt.Println("The ToCompany has enough money to be transferred for this paper")
-	}
-
-	toCompany.CashBalance -= amountToBeTransferred
-	fromCompany.CashBalance += amountToBeTransferred
-
-	toOwnerFound := false
-	for key, owner := range cp.Owners {
-		if owner.Company == tr.FromCompany {
-			fmt.Println("Reducing Quantity from the FromCompany")
-			cp.Owners[key].Quantity -= tr.Quantity
-			//			owner.Quantity -= tr.Quantity
-		}
-		if owner.Company == tr.ToCompany {
-			fmt.Println("Increasing Quantity from the ToCompany")
-			toOwnerFound = true
-			cp.Owners[key].Quantity += tr.Quantity
-			//			owner.Quantity += tr.Quantity
-		}
-	}
-
-	if toOwnerFound == false {
-		var newOwner Owner
-		fmt.Println("As ToOwner was not found, appending the owner to the CP")
-		newOwner.Quantity = tr.Quantity
-		newOwner.Company = tr.ToCompany
-		cp.Owners = append(cp.Owners, newOwner)
-	}
-
-	fromCompany.AssetsIds = append(fromCompany.AssetsIds, tr.CUSIP)
-
-	// Write everything back
-	// To Company
-	toCompanyBytesToWrite, err := json.Marshal(&toCompany)
-	if err != nil {
-		fmt.Println("Error marshalling the toCompany")
-		return nil, errors.New("Error marshalling the toCompany")
-	}
-	fmt.Println("Put state on toCompany")
-	err = stub.PutState(accountPrefix+tr.ToCompany, toCompanyBytesToWrite)
-	if err != nil {
-		fmt.Println("Error writing the toCompany back")
-		return nil, errors.New("Error writing the toCompany back")
-	}
-
-	// From company
-	fromCompanyBytesToWrite, err := json.Marshal(&fromCompany)
-	if err != nil {
-		fmt.Println("Error marshalling the fromCompany")
-		return nil, errors.New("Error marshalling the fromCompany")
-	}
-	fmt.Println("Put state on fromCompany")
-	err = stub.PutState(accountPrefix+tr.FromCompany, fromCompanyBytesToWrite)
-	if err != nil {
-		fmt.Println("Error writing the fromCompany back")
-		return nil, errors.New("Error writing the fromCompany back")
-	}
-
-	// cp
-	cpBytesToWrite, err := json.Marshal(&cp)
-	if err != nil {
-		fmt.Println("Error marshalling the cp")
-		return nil, errors.New("Error marshalling the cp")
-	}
-	fmt.Println("Put state on CP")
-	err = stub.PutState(vehiclePrefix+tr.CUSIP, cpBytesToWrite)
+	err = stub.PutState(vehiclePrefix+tr.VIN, cpBytesToWrite)
 	if err != nil {
 		fmt.Println("Error writing the cp back")
 		return nil, errors.New("Error writing the cp back")
@@ -1672,13 +1310,13 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	fmt.Println("Invoke running. Function: " + function)
 
 	if function == "issueCommercialPaper" {
-		return t.issueCommercialPaper(stub, args)
+		return t.issueVehicleTitle(stub, args)
 	} else if function == "issueDriverLicense" {
 		return t.issueDriverLicense(stub, args)
 	} else if function == "issueVehicleRegistration" {
 		return t.issueVehicleRegistration(stub, args)
 	} else if function == "transferPaper" {
-		return t.transferPaper(stub, args)
+		return t.transferTitle(stub, args)
 	} else if function == "renewLicense" {
 		return t.renewLicense(stub, args)
 	} else if function == "renewRegistration" {
