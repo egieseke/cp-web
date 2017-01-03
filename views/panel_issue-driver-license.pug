@@ -18,6 +18,11 @@
 			legend 
 				input(type="text" name="zip" placeholder="Postal Code")
 			legend
+				select(name="auto-renew")
+					option(value="no") NO
+					option(value="yes") YES
+				span.hint AUTO-RENEWAL
+			legend
 				button(type="button" style="margin:5px;")#submitIssueDriverLicense
 					span.fa.fa-check &nbsp;&nbsp;
 					span CREATE

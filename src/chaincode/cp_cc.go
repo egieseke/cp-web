@@ -80,6 +80,7 @@ type VehicleRegistration struct {
 	TestId         string `json:"testId"`
 	PolicyId       string `json:"policyId"`
 	Owner          string `json:"owner"`
+	AutoRenewal    string `json:"auto"`
 	IssueDate      string `json:"issueDate"`
 	ExpiryDate     string `json:"expiryDate"`
 }
@@ -92,6 +93,7 @@ type DriverLicense struct {
 	State      string `json:"state"`
 	Zip        string `json:"zip"`
 	Driver     string `json:"driver"`
+	AutoRenewal    string `json:"auto"`
 	IssueDate  string `json:"issueDate"`
 	ExpiryDate string `json:"expiryDate"`
 }

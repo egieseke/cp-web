@@ -48,7 +48,6 @@ function buyButton(disabled, vin, issuer) {
 function renewLicenseButton(disabled, licenseId, driver) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');
-    button.setAttribute('href', '#licenseModal');
     button.setAttribute('data_licenseId', licenseId);
     button.setAttribute('data_driver', driver);
     if(disabled) button.disabled = true;
@@ -124,6 +123,7 @@ function license_to_entries(license) {
             state: license.state,
             zip: license.zip,
             driver: license.driver,
+            auto: license.auto,
             issueDate: license.issueDate,
             expiryDate: license.expiryDate
         };
@@ -144,6 +144,7 @@ function registration_to_entries(registration) {
             testId: registration.testId,
             policyId: registration.policyId,
             owner: registration.owner,
+            auto: registration.auto,
             issueDate: registration.issueDate,
             expiryDate: registration.expiryDate
         };

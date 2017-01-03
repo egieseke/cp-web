@@ -106,6 +106,7 @@ $(document).on('ready', function () {
                     testId: escapeHtml($("input[name='inspectionReceiptId']").val()),
                     policyId: escapeHtml($("input[name='insurancePolicyId']").val()),
                     owner: user.name,
+                    auto: escapeHtml($("select[name='auto-renew-r']").val()),
                     issueDate: Date.now().toString(),
                     expiryDate: myDate.toString()
                 },
@@ -133,6 +134,7 @@ $(document).on('ready', function () {
                     state: escapeHtml($("input[name='state']").val()),
                     zip: escapeHtml($("input[name='zip']").val()),
                     driver: user.name,
+                    auto: escapeHtml($("select[name='auto-renew']").val()),
                     issueDate: Date.now().toString(),
                     expiryDate: myDate.toString()
                 },
@@ -568,7 +570,8 @@ function build_registrations(registrations, panelDesc) {
                         entries[i].plateNum,
                         entries[i].policyId,
                         escapeHtml(entries[i].owner),
-                        entries[i].expiryDate
+                        entries[i].expiryDate,
+                        entries[i].auto
                     ];
 
                     var row = createRow(data);
@@ -662,7 +665,8 @@ function build_licenses(licenses, panelDesc) {
                         entries[i].city,
                         entries[i].state,
                         entries[i].zip,
-                        entries[i].expiryDate
+                        entries[i].expiryDate,
+                        entries[i].auto
                     ];
 
                     var row = createRow(data);
@@ -671,6 +675,7 @@ function build_licenses(licenses, panelDesc) {
                     if (panelDesc.name === "license") {
                         var disabled = false;
                         if (user.name.toLowerCase() === entries[i].driver.toLowerCase()) disabled = false;		
+
                         var button = renewLicenseButton(disabled, entries[i].licenseId, entries[i].driver);
                         row.appendChild(button);
                     }

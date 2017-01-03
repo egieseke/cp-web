@@ -16,6 +16,12 @@
 				input(type="text" name="insurancePolicyId" placeholder="Insurance Policy Number")
 
 			legend
+				select(name="auto-renew-r")
+					option(value="no") NO
+					option(value="yes") YES
+				span.hint AUTO-RENEWAL
+
+			legend
 				button(type="button" style="margin:5px;")#submit1
 					span.fa.fa-check &nbsp;&nbsp;
 					span CREATE
