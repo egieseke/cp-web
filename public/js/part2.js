@@ -260,7 +260,7 @@ $(document).on('ready', function () {
     $(document).on("click", ".buyPaper", function () {
         if (user.username) {
             console.log('transfer title...');
-            var cusip = $(this).attr('data_vin');
+            var vin = $(this).attr('data_vin');
             var issuer = $(this).attr('data_issuer');
             var newOwner = 'dealer2';
             var amountPaid = 100.10
@@ -553,12 +553,13 @@ function build_registrations(registrations, panelDesc) {
 
                 if (excluded(entries[i], filter)) {
                     var style;
-/*
-                    if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) {
-                        //cannot buy my own stuff
+
+                    if (user.name.toLowerCase() === entries[i].owner.toLowerCase() || user.name.toLowerCase() === 'government') {
                         style = null;
+                    }else {
+                        style = 'invalid';
                     }
-*/
+
                     // Create a row for each valid trade
                     var data = [
                         formatDate(Number(entries[i].issueDate), '%M/%d %I:%m%P'),
@@ -645,9 +646,11 @@ function build_licenses(licenses, panelDesc) {
 
                 if (excluded(entries[i], filter)) {
                     var style;
-                    if (user.name.toLowerCase() === entries[i].driver.toLowerCase()) {
+                    if (user.name.toLowerCase() === entries[i].driver.toLowerCase() || user.name.toLowerCase() === 'government') {
                         //cannot buy my own stuff
                         style = null;
+                    }else {
+                        style = 'invalid';
                     }
 
                     // Create a row for each valid trade
@@ -743,12 +746,8 @@ function build_trades(papers, panelDesc) {
 
                 if (excluded(entries[i], filter)) {
                     var style;
-                    if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) {
+                    if (user.name.toLowerCase() === entries[i].owner.toLowerCase() || user.name.toLowerCase() === 'government') {
                         //cannot buy my own stuff
-                        style = null;
-                    }
-                    else if (entries[i].issuer.toLowerCase() !== entries[i].owner.toLowerCase()) {
-                        //cannot buy stuff already bought
                         style = null;
                     } else {
                         style = 'invalid';

@@ -23,11 +23,10 @@ function createRow(data) {
  * @param issuer The issuer of the paper that this button is assigned to.
  * @returns {Element} A table cell with a configured buy button.
  */
-function buyButton(disabled, cusip, issuer) {
+function buyButton(disabled, vin, issuer) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');
-    button.setAttribute('href', '#transferModal');
-    button.setAttribute('data_cusip', cusip);
+    button.setAttribute('data_vin', vin);
     button.setAttribute('data_issuer', issuer);
     if(disabled) button.disabled = true;
     button.classList.add('buyPaper');
