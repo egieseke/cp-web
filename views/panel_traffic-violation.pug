@@ -1,0 +1,46 @@
+#traffic-violationPanel(hidden).panel
+	h4 
+		span(style="font-weight:bold;") Department of Motor Vehicles - Traffic-Violations
+	hr
+	
+	br
+	#violationModal.modalDialog
+			div
+				.modal-header
+					h2 Filter License
+					hr
+				.modal-content
+					form#violationFilter
+						label(for="violation_issuer") POSTAL-CODE 
+						input#violation_issuer.violation-filter(type="text" name="issuer")
+						br
+						label(for="") DRIVER
+						input#violation_owner.violation-filter(type="text" name="owner")
+						br
+						label(for="violation_ticker") LICENSE-ID
+						input#violation_ticker.violation-filter(type="text" name="ticker")
+						br
+						a.filter-button(href="#close" title="Close") Close
+						
+	#openTraffic-Violations
+		br
+		p
+			span(style="font-weight:bold;") Account Balance:
+			span#accountBalanceViolation Loading from blockchain...
+		br
+		a.filter-button(href="#violationModal") Filter Traffic-Violation 
+		br
+		br
+		table#violationTable.tablesorter
+			thead
+				tr 
+					TH: a.sort-selector(sort="date") DATE
+						span.fa.fa-arrow-up.sort-indicator
+					th: a.sort-selector(sort="cusip") TICKET-ID
+					th: a.sort-selector(sort="cusip") TYPE
+					th: a.sort-selector(sort="cusip") LICENSE-ID
+					th: a.sort-selector(sort="owner") OWNER
+					th: a.sort-selector(sort="maturity") AMOUNT
+					th: a.sort-selector(sort="auto") LOCATION
+					th SIMULATE
+			tbody#violationBody

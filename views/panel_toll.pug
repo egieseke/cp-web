@@ -1,0 +1,46 @@
+#tollPanel(hidden).panel
+	h4 
+		span(style="font-weight:bold;") Department of Motor Vehicles - Tolls
+	hr
+	
+	br
+	#tollModal.modalDialog
+			div
+				.modal-header
+					h2 Filter License
+					hr
+				.modal-content
+					form#tollFilter
+						label(for="toll_issuer") POSTAL-CODE 
+						input#toll_issuer.toll-filter(type="text" name="issuer")
+						br
+						label(for="") DRIVER
+						input#toll_owner.toll-filter(type="text" name="owner")
+						br
+						label(for="toll_ticker") LICENSE-ID
+						input#toll_ticker.toll-filter(type="text" name="ticker")
+						br
+						a.filter-button(href="#close" title="Close") Close
+						
+	#openTolls
+		br
+		p
+			span(style="font-weight:bold;") Account Balance:
+			span#accountBalanceToll Loading from blockchain...
+		br
+		a.filter-button(href="#tollModal") Filter Toll 
+		br
+		br
+		table#tollTable.tablesorter
+			thead
+				tr 
+					TH: a.sort-selector(sort="date") DATE
+						span.fa.fa-arrow-up.sort-indicator
+					th: a.sort-selector(sort="cusip") TICKET-ID
+					th: a.sort-selector(sort="cusip") TYPE
+					th: a.sort-selector(sort="cusip") LICENSE-PLATE
+					th: a.sort-selector(sort="owner") OWNER
+					th: a.sort-selector(sort="maturity") AMOUNT
+					th: a.sort-selector(sort="auto") LOCATION
+					th SIMULATE
+			tbody#tollBody
