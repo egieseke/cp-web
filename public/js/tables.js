@@ -45,6 +45,50 @@ function buyButton(disabled, vin, issuer) {
     return td;
 }
 
+function simulateViolationButton(disabled, licenseId, driver) {
+    var button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.setAttribute('data_licenseId', licenseId);
+    button.setAttribute('data_driver', driver);
+    if(disabled) button.disabled = true;
+    button.classList.add('simulateViolation');
+    button.classList.add('altButton');
+
+    var span = document.createElement('span');
+    span.classList.add('fa');
+    span.classList.add('fa-exchange');
+    span.innerHTML = ' &nbsp;&nbsp;Violation';
+    button.appendChild(span);
+
+    // Wrap the buy button in a td like the other items in the row.
+    var td = document.createElement('td');
+    td.appendChild(button);
+
+    return td;
+}
+
+function simulateTollButton(disabled, registrationId, owner) {
+    var button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.setAttribute('data_registrationId', registrationId);
+    button.setAttribute('data_owner', owner);
+    if(disabled) button.disabled = true;
+    button.classList.add('simulateToll');
+    button.classList.add('altButton');
+
+    var span = document.createElement('span');
+    span.classList.add('fa');
+    span.classList.add('fa-exchange');
+    span.innerHTML = ' &nbsp;&nbsp;Toll';
+    button.appendChild(span);
+
+    // Wrap the buy button in a td like the other items in the row.
+    var td = document.createElement('td');
+    td.appendChild(button);
+
+    return td;
+}
+
 function renewLicenseButton(disabled, licenseId, driver) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');

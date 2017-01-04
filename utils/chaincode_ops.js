@@ -208,6 +208,46 @@ CPChaincode.prototype.renewLicense = function(enrollID, renewlicense, cb) {
     });
 };
 
+CPChaincode.prototype.simulateViolation = function(enrollID, simulateViolation , cb) {
+    console.log(TAG, 'simulating traffic violation');
+
+    var trafficViolationRequest = {
+        chaincodeID: this.chaincodeID,
+        fcn: 'issueTrafficViolation',
+        args: [JSON.stringify(simulateViolation)]
+    };
+
+    invoke(this.chain, enrollID, trafficViolationRequest, function(err, result) {
+        if(err) {
+            console.error(TAG, 'failed to simulate traffic violation:', err);
+            return cb(err);
+        }
+
+        console.log(TAG, 'Simulated traffic violation successfully:', result.toString());
+        cb(null, result);
+    });
+};
+
+CPChaincode.prototype.simulateToll = function(enrollID, simulateToll, cb) {
+    console.log(TAG, 'simulating toll');
+
+    var tollRequest = {
+        chaincodeID: this.chaincodeID,
+        fcn: 'issueTollTicket',
+        args: [JSON.stringify(simulateToll)]
+    };
+
+    invoke(this.chain, enrollID, tollRequest, function(err, result) {
+        if(err) {
+            console.error(TAG, 'failed to simulate toll:', err);
+            return cb(err);
+        }
+
+        console.log(TAG, 'Simulated toll successfully:', result.toString());
+        cb(null, result);
+    });
+};
+
 CPChaincode.prototype.renewRegistration = function(enrollID, renewregistration, cb) {
     console.log(TAG, 'renewing driver registration');
 

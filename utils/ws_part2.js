@@ -213,6 +213,48 @@ module.exports.process_msg = function (socket, data) {
                 console.log(TAG, 'Queued renew_license job complete');
         });
     }
+    else if (data.type == 'simulate_violation') {
+
+        console.log(TAG, 'simulating traffic violation:', data.trafficViolation);
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.simulateViolation(data.user, data.trafficViolation, function (err, result) {
+                if (err != null) {
+                    console.error(TAG, 'Error in simulate_violation. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'simulated traffic violation. No response will be sent result:', result);
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued simulate_violation error:', err.message);
+            else
+                console.log(TAG, 'Queued simulate_violation job complete');
+        });
+    }
+    else if (data.type == 'simulate_toll') {
+
+        console.log(TAG, 'simulating toll:', data.toll);
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.simulateToll(data.user, data.toll, function (err, result) {
+                if (err != null) {
+                    console.error(TAG, 'Error in simulate_toll. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'simulated toll. No response will be sent result:', result);
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued simulate_toll error:', err.message);
+            else
+                console.log(TAG, 'Queued simulate_toll job complete');
+        });
+    }
     else if (data.type == 'renew_registration') {
 
         console.log(TAG, 'renewing registration:', data.renewregistration);

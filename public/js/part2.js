@@ -316,6 +316,37 @@ $(document).on('ready', function () {
         }
     });
 
+    //simulate traffic violation
+    $(document).on("click", ".simulateViolation", function () {
+        alert("simulate traffic violation")
+         var myDate = new Date();
+         myDate.setFullYear(myDate.getFullYear() + 2);
+        if (user.username) {
+            console.log('simulating traffic violation...');
+            var licenseId = $(this).attr('data_licenseId');
+            var driver = $(this).attr('data_driver');
+            var amt = 60;
+	    var loc = "3 N 50 S";
+	    var type = "speeding";
+
+            var msg = {
+                type: 'simulate_violation',
+                trafficViolation: {
+                    txId: Date.now().toString(),
+		    type: type,
+                    licenseId: licenseId,
+                    driver: driver,
+                    issueDate: Date.now().toString(),
+                    fine: amt,
+		    location: loc
+                },
+                user: user.username
+            };
+            console.log('sending', msg);
+            ws.send(JSON.stringify(msg));
+            $("#trafficViolationNotificationPanel").animate({width: 'toggle'});
+        }
+    });
     //renew registration
     $(document).on("click", ".renewRegistration", function () {
         alert("renew registration")
@@ -325,8 +356,6 @@ $(document).on('ready', function () {
             console.log('renewing registration...');
             var registrationId = $(this).attr('data_registrationId');
             var owner = $(this).attr('data_owner');
-
-            alert("driver" + owner)
 
             var msg = {
                 type: 'renew_registration',
@@ -345,7 +374,39 @@ $(document).on('ready', function () {
         }
     });
 
+    //simulate toll
+    $(document).on("click", ".simulateToll", function () {
+        alert("simulate toll")
+         var myDate = new Date();
+         myDate.setFullYear(myDate.getFullYear() + 4);
+        if (user.username) {
+            console.log('renewing registration...');
+            var registrationId = $(this).attr('data_registrationId');
+            var owner = $(this).attr('data_owner');
+	    var amt = 5;
+            var loc = "3 N 50 S";
+            var type = "highway toll";
+
+            var msg = {
+                type: 'simulate_toll',
+                toll: {
+                    txId: Date.now().toString(),
+                    type: type,
+                    registrationId: registrationId,
+		    owner: owner,
+                    issueDate: Date.now().toString(),
+		    toll: amt,
+		    location: loc
+                },
+                user: user.username
+            };
+            console.log('sending', msg);
+            ws.send(JSON.stringify(msg));
+            $("#tollNotificationPanel").animate({width: 'toggle'});
+        }
+    });
 });
+
 
 
 // =================================================================================
@@ -582,6 +643,11 @@ function build_registrations(registrations, panelDesc) {
                         //if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) disabled = false;		
                         var button = renewRegistrationButton(disabled, entries[i].registrationId, entries[i].owner);
                         row.appendChild(button);
+
+                        var simulate = true;
+                        if (user.name.toLowerCase() === 'government') simulate = false;
+                        var button1 = simulateTollButton(simulate, entries[i].registrationId, entries[i].owner);
+                        row.appendChild(button1);
                     }
                     rows.push(row);
                 }
@@ -678,6 +744,11 @@ function build_licenses(licenses, panelDesc) {
 
                         var button = renewLicenseButton(disabled, entries[i].licenseId, entries[i].driver);
                         row.appendChild(button);
+
+			var simulate = true;
+                        if (user.name.toLowerCase() === 'government') simulate = false;
+			var button1 = simulateViolationButton(simulate, entries[i].licenseId, entries[i].driver);
+                        row.appendChild(button1);
                     }
                     rows.push(row);
                 }

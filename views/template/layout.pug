@@ -76,6 +76,20 @@ html
 					$("#notificationPanel").animate({width:'toggle'});
 				});
 
+				$("#closeTrafficViolationNotification").click(function(){
+					$("#trafficViolationNotificationPanel").animate({right:'-=450'}, 500, function(){
+						$(this).hide();
+					});
+					$("#trafficViolationNotificationPanel").animate({width:'toggle'});
+				});
+
+				$("#closeTollNotification").click(function(){
+					$("#tollNotificationPanel").animate({right:'-=450'}, 500, function(){
+						$(this).hide();
+					});
+					$("#tollNotificationPanel").animate({width:'toggle'});
+				});
+
 				$("#closeLicenseRenewalNotification").click(function(){
 					$("#licenseRenewalNotificationPanel").animate({right:'-=450'}, 500, function(){
 						$(this).hide();
@@ -96,6 +110,9 @@ html
 					$("#homePanel").show();
 					$("#notificationPanel").animate({width:'toggle'});
 					$("#licenseRenewalNotificationPanel").animate({width:'toggle'});
+					$("#registrationRenewalNotificationPanel").animate({width:'toggle'});
+					$("#trafficViolationNotificationPanel").animate({width:'toggle'});
+					$("#tollNotificationPanel").animate({width:'toggle'});
 				});
 				
 				//Page refresh show correct panel
@@ -131,6 +148,16 @@ html
 					span.fa.fa-check#noticeIcon
 					#noticeText YOUR LICENSE RENEWAL WAS SUBMITTED!
 					button(type="button")#closeLicenseRenewalNotification OK		
+
+				#trafficViolationNotificationPanel
+					span.fa.fa-check#noticeIcon
+					#noticeText YOUR TRAFFIC VIOLATION TICKET WAS SUBMITTED!
+					button(type="button")#closeTrafficViolationNotification OK
+
+				#tollNotificationPanel
+					span.fa.fa-check#noticeIcon
+					#noticeText YOUR TOLL CHARGE WAS SUBMITTED!
+					button(type="button")#closeTollNotification OK
 
 				#registrationRenewalNotificationPanel
 					span.fa.fa-check#noticeIcon

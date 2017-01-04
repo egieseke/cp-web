@@ -33,10 +33,14 @@ var vehiclePrefix = "vehicle:"
 var accountPrefix = "acct:"
 var licensePrefix = "license:"
 var registrationPrefix = "reg:"
+var violationPrefix = "vio:"
+var tollPrefix = "toll:"
 
 var titleKeys = "TitleKeys"
 var licenseKeys = "LicenseKeys"
 var registrationKeys = "RegistrationKeys"
+var violationKeys = "TrafficViolationKeys"
+var tollKeys = "TollKeys"
 
 // SimpleChaincode example simple Chaincode implementation
 type SimpleChaincode struct {
@@ -124,6 +128,26 @@ type RenewLicenseTx struct {
 	Driver     string `json:"driver"`
 	IssueDate  string `json:"issueDate"`
 	ExpiryDate string `json:"expiryDate"`
+}
+
+type TrafficViolationTx struct {
+	TxId       string `json:"txId"`
+	ViolationType string `json:"type"`
+	LicenseId  string `json:"licenseId"`
+	Driver     string `json:"driver"`
+	IssueDate  string `json:"issueDate"`
+	Fine       float64  `json:"fine"`
+	Location   string `json:"location"`
+}
+
+type TollTx struct {
+	TxId       string `json:"txId"`
+	TollType string `json:"type"`
+	RegistrationId  string `json:"registrationId"`
+	Driver     string `json:"owner"`
+	IssueDate  string `json:"issueDate"`
+	Toll       float64  `json:"toll"`
+	Location   string `json:"location"`
 }
 
 type RenewRegistrationTx struct {
@@ -265,7 +289,14 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 	if err != nil {
 		fmt.Println("Failed to initialize registration key collection")
 	}
-
+	err = stub.PutState(violationKeys, blankBytes)
+        if err != nil {
+                fmt.Println("Failed to initialize traffic violation key collection")
+        }
+        err = stub.PutState(tollKeys, blankBytes)
+        if err != nil {
+                fmt.Println("Failed to initialize toll key collection")
+        }
 	fmt.Println("Initialization complete")
 	return nil, nil
 }
@@ -933,6 +964,285 @@ func (t *SimpleChaincode) renewRegistration(stub shim.ChaincodeStubInterface, ar
 	return nil, nil
 }
 
+func (t *SimpleChaincode) issueTollTicket(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	fmt.Println("Issue Toll ticket")
+	//need one arg
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting  toll record")
+	}
+
+	var tr TollTx
+
+	fmt.Println("Unmarshalling Transaction")
+	err := json.Unmarshal([]byte(args[0]), &tr)
+	if err != nil {
+		fmt.Println("Error Unmarshalling Transaction")
+		return nil, errors.New("Invalid toll record")
+	}
+
+	cpBytes, err := stub.GetState(registrationPrefix + tr.RegistrationId)
+	if err != nil {
+		fmt.Println("RegistrationId not found")
+		return nil, errors.New("RegistrationId not found " + tr.RegistrationId)
+	}
+
+	var cp VehicleRegistration
+	fmt.Println("Unmarshalling Registration" + tr.RegistrationId)
+	err = json.Unmarshal(cpBytes, &cp)
+	if err != nil {
+		fmt.Println("Error unmarshalling registration " + tr.RegistrationId)
+		return nil, errors.New("Error unmarshalling registration " + tr.RegistrationId)
+	}
+
+	var driver Account
+	fmt.Println("Getting State on Driver " + tr.Driver)
+	driverBytes, err := stub.GetState(accountPrefix + tr.Driver)
+	if err != nil {
+		fmt.Println("Account not found " + tr.Driver)
+		return nil, errors.New("Account not found " + tr.Driver)
+	}
+
+	fmt.Println("Unmarshalling Driver")
+	err = json.Unmarshal(driverBytes, &driver)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + tr.Driver)
+		return nil, errors.New("Error unmarshalling account " + tr.Driver)
+	}
+
+	var toCompany Account
+	fmt.Println("Getting State on ToCompany " + "government")
+	toCompanyBytes, err := stub.GetState(accountPrefix + "government")
+	if err != nil {
+		fmt.Println("Account not found " + "government")
+		return nil, errors.New("Account not found " + "government")
+	}
+
+	fmt.Println("Unmarshalling tocompany")
+	err = json.Unmarshal(toCompanyBytes, &toCompany)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + "government")
+		return nil, errors.New("Error unmarshalling account " + "government")
+	}
+
+	// If toCompany doesn't have enough cash to buy the papers
+/*
+	if driver.CashBalance < licenseRenewalFee {
+		fmt.Println("The driver " + tr.Driver + "doesn't have enough cash to pay fine")
+		return nil, errors.New("The driver " + tr.Driver + "doesn't have enough cash to pay fine")
+	} else {
+		fmt.Println("The driver has enough money to pay fine")
+	}
+*/
+	toCompany.CashBalance += tr.Toll
+	driver.CashBalance -= tr.Toll
+
+        // email driver
+
+	// Write everything back
+	// To Company
+	toCompanyBytesToWrite, err := json.Marshal(&toCompany)
+	if err != nil {
+		fmt.Println("Error marshalling the government")
+		return nil, errors.New("Error marshalling the government")
+	}
+	fmt.Println("Put state on toCompany")
+	err = stub.PutState(accountPrefix+"government", toCompanyBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the government back")
+		return nil, errors.New("Error writing the government back")
+	}
+
+	// Save the Driver state
+	driverBytesToWrite, err := json.Marshal(&driver)
+	if err != nil {
+		fmt.Println("Error marshalling the driver")
+		return nil, errors.New("Error marshalling the driver")
+	}
+	fmt.Println("Put state on driver")
+	err = stub.PutState(accountPrefix+tr.Driver, driverBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the driver back")
+		return nil, errors.New("Error writing the driver back")
+	}
+
+        // Update the toll keys by adding the new key
+        fmt.Println("Getting Toll Keys")
+        keysBytes, err := stub.GetState(tollKeys)
+        if err != nil {
+        	fmt.Println("Error retrieving toll keys")
+                return nil, errors.New("Error retrieving toll keys")
+        }
+        var keys []string
+        err = json.Unmarshal(keysBytes, &keys)
+        if err != nil {
+               fmt.Println("Error unmarshel keys")
+               return nil, errors.New("Error unmarshalling toll keys ")
+        }
+
+        fmt.Println("Appending the new key to Toll Keys")
+        keys = append(keys, tollPrefix+tr.TxId)
+        keysBytesToWrite, err := json.Marshal(&keys)
+        if err != nil {
+               fmt.Println("Error marshalling keys")
+               return nil, errors.New("Error marshalling the keys")
+        }
+        fmt.Println("Put state on Toll Keys")
+        err = stub.PutState(tollKeys, keysBytesToWrite)
+        if err != nil {
+               fmt.Println("Error writting keys back")
+               return nil, errors.New("Error writing the keys back")
+        }
+	fmt.Println("Successfully completed Invoke of issue toll ticket")
+	return nil, nil
+}
+
+func (t *SimpleChaincode) issueTrafficViolation(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	fmt.Println("Issue Traffic Violation ticket")
+	//need one arg
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting  traffic violation record")
+	}
+
+	var tr TrafficViolationTx
+
+	fmt.Println("Unmarshalling Transaction")
+	err := json.Unmarshal([]byte(args[0]), &tr)
+	if err != nil {
+		fmt.Println("Error Unmarshalling Transaction")
+		return nil, errors.New("Invalid traffic violation record")
+	}
+
+	cpBytes, err := stub.GetState(licensePrefix + tr.LicenseId)
+	if err != nil {
+		fmt.Println("LicenseId not found")
+		return nil, errors.New("LicenseId not found " + tr.LicenseId)
+	}
+
+	var cp DriverLicense
+	fmt.Println("Unmarshalling License " + tr.LicenseId)
+	err = json.Unmarshal(cpBytes, &cp)
+	if err != nil {
+		fmt.Println("Error unmarshalling cp " + tr.LicenseId)
+		return nil, errors.New("Error unmarshalling license " + tr.LicenseId)
+	}
+
+	var driver Account
+	fmt.Println("Getting State on Driver " + tr.Driver)
+	driverBytes, err := stub.GetState(accountPrefix + tr.Driver)
+	if err != nil {
+		fmt.Println("Account not found " + tr.Driver)
+		return nil, errors.New("Account not found " + tr.Driver)
+	}
+
+	fmt.Println("Unmarshalling Driver")
+	err = json.Unmarshal(driverBytes, &driver)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + tr.Driver)
+		return nil, errors.New("Error unmarshalling account " + tr.Driver)
+	}
+
+	var toCompany Account
+	fmt.Println("Getting State on ToCompany " + "government")
+	toCompanyBytes, err := stub.GetState(accountPrefix + "government")
+	if err != nil {
+		fmt.Println("Account not found " + "government")
+		return nil, errors.New("Account not found " + "government")
+	}
+
+	fmt.Println("Unmarshalling tocompany")
+	err = json.Unmarshal(toCompanyBytes, &toCompany)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + "government")
+		return nil, errors.New("Error unmarshalling account " + "government")
+	}
+
+	// If toCompany doesn't have enough cash to buy the papers
+/*
+	if driver.CashBalance < licenseRenewalFee {
+		fmt.Println("The driver " + tr.Driver + "doesn't have enough cash to pay fine")
+		return nil, errors.New("The driver " + tr.Driver + "doesn't have enough cash to pay fine")
+	} else {
+		fmt.Println("The driver has enough money to pay fine")
+	}
+*/
+	toCompany.CashBalance += tr.Fine
+	driver.CashBalance -= tr.Fine
+
+	//TODO introduce violation array into license
+        // email driver
+
+	// Write everything back
+	// To Company
+	toCompanyBytesToWrite, err := json.Marshal(&toCompany)
+	if err != nil {
+		fmt.Println("Error marshalling the government")
+		return nil, errors.New("Error marshalling the government")
+	}
+	fmt.Println("Put state on toCompany")
+	err = stub.PutState(accountPrefix+"government", toCompanyBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the government back")
+		return nil, errors.New("Error writing the government back")
+	}
+
+	// Save the Driver state
+	driverBytesToWrite, err := json.Marshal(&driver)
+	if err != nil {
+		fmt.Println("Error marshalling the driver")
+		return nil, errors.New("Error marshalling the driver")
+	}
+	fmt.Println("Put state on driver")
+	err = stub.PutState(accountPrefix+tr.Driver, driverBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the driver back")
+		return nil, errors.New("Error writing the driver back")
+	}
+
+	// save the updated drivers license
+	cpBytesToWrite, err := json.Marshal(&cp)
+	if err != nil {
+		fmt.Println("Error marshalling the cp")
+		return nil, errors.New("Error marshalling the cp")
+	}
+	fmt.Println("Put state on drivers license")
+	err = stub.PutState(licensePrefix+tr.LicenseId, cpBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the drivers license back")
+		return nil, errors.New("Error writing the drivers license back")
+	}
+
+        // Update the violation keys by adding the new key
+        fmt.Println("Getting violation Keys")
+        keysBytes, err := stub.GetState(violationKeys)
+        if err != nil {
+                fmt.Println("Error retrieving violation keys")
+                return nil, errors.New("Error retrieving violation keys")
+        }
+        var keys []string
+        err = json.Unmarshal(keysBytes, &keys)
+        if err != nil {
+               fmt.Println("Error unmarshel keys")
+               return nil, errors.New("Error unmarshalling violation keys ")
+        }
+
+        fmt.Println("Appending the new key to violation Keys")
+        keys = append(keys, violationPrefix+tr.TxId)
+        keysBytesToWrite, err := json.Marshal(&keys)
+        if err != nil {
+               fmt.Println("Error marshalling keys")
+               return nil, errors.New("Error marshalling the keys")
+        }
+        fmt.Println("Put state on violation Keys")
+        err = stub.PutState(violationKeys, keysBytesToWrite)
+        if err != nil {
+               fmt.Println("Error writting keys back")
+               return nil, errors.New("Error writing the keys back")
+        }
+
+	fmt.Println("Successfully completed Invoke of issue traffic violation")
+	return nil, nil
+}
+
 func (t *SimpleChaincode) renewLicense(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var licenseRenewalFee float64 = 50
 	fmt.Println("Renewing License")
@@ -1321,6 +1631,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 		return t.transferTitle(stub, args)
 	} else if function == "renewLicense" {
 		return t.renewLicense(stub, args)
+        } else if function == "issueTrafficViolation" {
+                return t.issueTrafficViolation(stub, args)
+        } else if function == "issueTollTicket" {
+                return t.issueTollTicket(stub, args)
 	} else if function == "renewRegistration" {
 		return t.renewRegistration(stub, args)
 	} else if function == "createAccounts" {
