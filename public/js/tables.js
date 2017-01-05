@@ -111,6 +111,28 @@ function renewLicenseButton(disabled, licenseId, driver) {
     return td;
 }
 
+function simulateNotifyButton(disabled, registrationId, owner) {
+    var button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.setAttribute('data_registrationId', registrationId);
+    button.setAttribute('data_owner', owner);
+    if(disabled) button.disabled = true;
+    button.classList.add('simulateNotify');
+    button.classList.add('altButton');
+
+    var span = document.createElement('span');
+    span.classList.add('fa');
+    span.classList.add('fa-exchange');
+    span.innerHTML = ' &nbsp;&nbsp;Notify';
+    button.appendChild(span);
+
+    // Wrap the buy button in a td like the other items in the row.
+    var td = document.createElement('td');
+    td.appendChild(button);
+
+    return td;
+}
+
 function renewRegistrationButton(disabled, registrationId, owner) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');
@@ -195,6 +217,47 @@ function registration_to_entries(registration) {
 
         // Save which paper this is associated with
         entry.registration= registration;
+
+        entries.push(entry);
+    return entries;
+}
+
+function toll_to_entries(toll) {
+    var entries = [];
+        var entry = {
+            registrationId: toll.registrationId,
+            txId: toll.txId,
+            type: toll.type,
+            //plateNum: toll.plateNum,
+            owner: toll.owner,
+            issueDate: toll.issueDate,
+            tollAmt: toll.tollAmt,
+	    location: toll.location
+        };
+
+        // Save which paper this is associated with
+        entry.toll= toll;
+
+        entries.push(entry);
+    return entries;
+}
+
+function violation_to_entries(violation) {
+    var entries = [];
+        var entry = {
+            registrationId: violation.registrationId,
+            txId: violation.txId,
+            licenseId: violation.licenseId,
+            type: violation.type,
+            //plateNum: violation.plateNum,
+            owner: violation.driver,
+            issueDate: violation.issueDate,
+            tollAmt: violation.fine,
+            location: violation.location
+        };
+
+        // Save which paper this is associated with
+        entry.violation= violation;
 
         entries.push(entry);
     return entries;

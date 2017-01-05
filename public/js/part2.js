@@ -33,6 +33,18 @@ var panels = [
         filterPrefix: "registration_"
     },
     {
+        name: "toll",
+        formID: "tollFilter",
+        tableID: "#tollBody",
+        filterPrefix: "toll_"
+    },
+    {
+        name: "violation",
+        formID: "violationFilter",
+        tableID: "#violationBody",
+        filterPrefix: "violation_"
+    },
+    {
         name: "audit",
         formID: "auditFilter",
         tableID: "#auditBody",
@@ -76,12 +88,14 @@ $(document).on('ready', function () {
         if (user.role && user.role.toUpperCase() === "auditor".toUpperCase()) {
             $("#auditLink").show();
         } else if (user.username) {
-            $("#issue-titleLink").show();
-            $("#issue-driver-licenseLink").show();
-            $("#register-vehicleLink").show();
+            //$("#issue-titleLink").show();
+            //$("#issue-driver-licenseLink").show();
+            //$("#register-vehicleLink").show();
             $("#titleLink").show();
             $("#licenseLink").show();
             $("#registrationLink").show();
+            $("#tollLink").show();
+            $("#traffic-violationLink").show();
         }
     } else {
 
@@ -203,6 +217,13 @@ $(document).on('ready', function () {
     });
     $("#registrationLink").click(function () {
         ws.send(JSON.stringify({type: "get_open_registrations", v: 2, user: user.username}));
+    });
+    $("#tollLink").click(function () {
+        ws.send(JSON.stringify({type: "get_open_tolls", v: 2, user: user.username}));
+    });
+
+    $("#traffic-violationLink").click(function () {
+        ws.send(JSON.stringify({type: "get_open_violations", v: 2, user: user.username}));
     });
 
     //login events
@@ -347,6 +368,37 @@ $(document).on('ready', function () {
             $("#trafficViolationNotificationPanel").animate({width: 'toggle'});
         }
     });
+
+    //simulate notify TODO
+    $(document).on("click", ".simulateNotify", function () {
+        alert("simulate notify")
+        if (user.username) {
+            console.log('simulating notify...');
+            var licenseId = $(this).attr('data_licenseId');
+            var driver = $(this).attr('data_driver');
+            var amt = 60;
+            var loc = "3 N 50 S";
+            var type = "speeding";
+
+            var msg = {
+                type: 'simulate_violation',
+                notify: {
+                    txId: Date.now().toString(),
+                    type: type,
+                    licenseId: licenseId,
+                    driver: driver,
+                    issueDate: Date.now().toString(),
+                    fine: amt,
+                    location: loc
+                },
+                user: user.username
+            };
+            console.log('sending', msg);
+            ws.send(JSON.stringify(msg));
+            $("#notifyNotificationPanel").animate({width: 'toggle'});
+        }
+    });
+
     //renew registration
     $(document).on("click", ".renewRegistration", function () {
         alert("renew registration")
@@ -395,7 +447,7 @@ $(document).on('ready', function () {
                     registrationId: registrationId,
 		    owner: owner,
                     issueDate: Date.now().toString(),
-		    toll: amt,
+		    tollAmt: amt,
 		    location: loc
                 },
                 user: user.username
@@ -497,13 +549,6 @@ function connect_to_server() {
                                 try{
                                         var licenses = JSON.parse(data.licenses);
                                         build_licenses(licenses, panels[1]);
-                                        /*
-                                        if ($('#auditPanel').is){
-                                                for (var i in panels) {
-                                                        build_licenses(licenses, panels[i]);
-                                                }
-                                        }
-                                        */
                                 }
                                 catch(e){
                                         console.log('cannot parse licenses', e);
@@ -513,18 +558,29 @@ function connect_to_server() {
                                 try{
                                         var registrations = JSON.parse(data.registrations);
                                         build_registrations(registrations, panels[2]);
-                                        /*
-                                        if ($('#auditPanel').is){
-                                                for (var i in panels) {
-                                                        build_licenses(licenses, panels[i]);
-                                                }
-                                        }
-                                        */
                                 }
                                 catch(e){
                                         console.log('cannot parse licenses', e);
                                 }
                         }
+                        else if (data.msg === 'tolls') {
+                                try{
+                                        var tolls = JSON.parse(data.tolls);
+                                        build_tolls(tolls, panels[3]);
+                                }
+                                catch(e){
+                                        console.log('cannot parse tolls', e);
+                                }
+                        }
+                        else if (data.msg === 'violations') {
+                                try{
+                                        var violations = JSON.parse(data.violations);
+                                        build_violations(violations, panels[4]);
+                                }
+                                catch(e){
+                                        console.log('cannot parse violations', e);
+                                }       
+                        } 
 			else if (data.msg === 'chainstats') {
 				console.log(JSON.stringify(data));
 				var e = formatDate(data.blockstats.transactions[0].timestamp.seconds * 1000, '%M/%d/%Y &nbsp;%I:%m%P');
@@ -541,6 +597,8 @@ function connect_to_server() {
 					$("#accountBalance").html(formatMoney(company.cashBalance));
 					$("#accountBalanceLicense").html(formatMoney(company.cashBalance));
 					$("#accountBalanceRegistration").html(formatMoney(company.cashBalance));
+					$("#accountBalanceToll").html(formatMoney(company.cashBalance));
+					$("#accountBalanceViolation").html(formatMoney(company.cashBalance));
 				}
 				catch(e){
 					console.log('cannot parse company', e);
@@ -551,6 +609,8 @@ function connect_to_server() {
 				ws.send(JSON.stringify({type: "get_papers", v: 2, user: user.username}));
 				ws.send(JSON.stringify({type: "get_licenses", v: 2, user: user.username}));
 				ws.send(JSON.stringify({type: "get_registrations", v: 2, user: user.username}));
+				ws.send(JSON.stringify({type: "get_tolls", v: 2, user: user.username}));
+				ws.send(JSON.stringify({type: "get_violations", v: 2, user: user.username}));
                 ws.send(JSON.stringify({type: "chainstats", v: 2, user: user.username}));
 				if (user.role !== "auditor") {
 					ws.send(JSON.stringify({type: 'get_company', company: user.name, user: user.username}));
@@ -587,6 +647,194 @@ function connect_to_server() {
 // =================================================================================
 //	UI Building
 // =================================================================================
+function build_violations(violations, panelDesc) {
+
+    if (violations && violations.length > 0) {
+
+        // Break the violations down into entries
+        console.log('breaking violations into individual entries');
+        var entries = [];
+        for (var violation in violations) {
+            var broken_up = violation_to_entries(violations[violation]);
+            entries = entries.concat(broken_up);
+        }
+        console.log("Displaying", violations.length, "violation as", entries.length, "entries");
+
+        // If no panel is given, assume this is the 
+        if (!panelDesc) {
+            panelDesc = panels[0];
+        }
+
+        entries.sort(sort_selected);
+        if (sort_reversed) entries.reverse();
+
+        // Display each entry as a row in the table
+        var rows = [];
+        for (var i in entries) {
+            console.log('!', entries[i]);
+
+
+                if (excluded(entries[i], filter)) {
+                    var style;
+
+                    if (user.name.toLowerCase() === entries[i].owner.toLowerCase() || user.name.toLowerCase() === 'government') {
+                        style = null;
+                    }else {
+                        style = 'invalid';
+                    }
+
+                    // Create a row for each valid trade
+                    var data = [
+                        formatDate(Number(entries[i].issueDate), '%M/%d %I:%m%P'),
+                        entries[i].txId,
+                        entries[i].type,
+                        entries[i].licenseId,
+                        escapeHtml(entries[i].owner),
+                        entries[i].tollAmt,
+			entries[i].location
+                    ];
+
+                    var row = createRow(data);
+                    style && row.classList.add(style);
+
+                    if (panelDesc.name === "violation") {
+
+                        var simulate = true;
+                        if (user.name.toLowerCase() === 'government') simulate = false;
+                        var button1 = simulateNotifyButton(simulate, entries[i].registrationId, entries[i].owner);
+                        row.appendChild(button1);
+                    }
+                    rows.push(row);
+                }
+
+        }
+
+        // Placeholder for an empty table
+        var html = '';
+        if (rows.length == 0) {
+            if (panelDesc.name === 'violation')
+                html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+            else if (panelDesc.name === 'audit')
+                html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'; // No action column
+            $(panelDesc.tableID).html(html);
+        } else {
+            // Remove the existing table data
+            console.log("clearing existing table data");
+            var tableBody = $(panelDesc.tableID);
+            tableBody.empty();
+
+
+            // Add the new rows to the table
+            console.log("populating new table data");
+            var row;
+            while (rows.length > 0) {
+                row = rows.shift();
+                tableBody.append(row);
+            }
+        }
+    } else {
+        if (panelDesc.name === 'violation')
+            html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        else if (panelDesc.name === 'audit')
+            html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'; // No action column
+        $(panelDesc.tableID).html(html);
+    }
+}
+
+function build_tolls(tolls, panelDesc) {
+
+    if (tolls && tolls.length > 0) {
+
+        // Break the tolls down into entries
+        console.log('breaking tolls into individual entries');
+        var entries = [];
+        for (var toll in tolls) {
+            var broken_up = toll_to_entries(tolls[toll]);
+            entries = entries.concat(broken_up);
+        }
+        console.log("Displaying", tolls.length, "toll as", entries.length, "entries");
+
+        // If no panel is given, assume this is the 
+        if (!panelDesc) {
+            panelDesc = panels[0];
+        }
+
+        entries.sort(sort_selected);
+        if (sort_reversed) entries.reverse();
+
+        // Display each entry as a row in the table
+        var rows = [];
+        for (var i in entries) {
+            console.log('!', entries[i]);
+
+
+                if (excluded(entries[i], filter)) {
+                    var style;
+
+                    if (user.name.toLowerCase() === entries[i].owner.toLowerCase() || user.name.toLowerCase() === 'government') {
+                        style = null;
+                    }else {
+                        style = 'invalid';
+                    }
+
+                    // Create a row for each valid trade
+                    var data = [
+                        formatDate(Number(entries[i].issueDate), '%M/%d %I:%m%P'),
+                        entries[i].txId,
+                        entries[i].type,
+                        entries[i].plateNum,
+                        escapeHtml(entries[i].owner),
+                        entries[i].tollAmt,
+			entries[i].location
+                    ];
+
+                    var row = createRow(data);
+                    style && row.classList.add(style);
+
+                    if (panelDesc.name === "toll") {
+
+                        var simulate = true;
+                        if (user.name.toLowerCase() === 'government') simulate = false;
+                        var button1 = simulateNotifyButton(simulate, entries[i].registrationId, entries[i].owner);
+                        row.appendChild(button1);
+                    }
+                    rows.push(row);
+                }
+
+        }
+
+        // Placeholder for an empty table
+        var html = '';
+        if (rows.length == 0) {
+            if (panelDesc.name === 'toll')
+                html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+            else if (panelDesc.name === 'audit')
+                html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'; // No action column
+            $(panelDesc.tableID).html(html);
+        } else {
+            // Remove the existing table data
+            console.log("clearing existing table data");
+            var tableBody = $(panelDesc.tableID);
+            tableBody.empty();
+
+
+            // Add the new rows to the table
+            console.log("populating new table data");
+            var row;
+            while (rows.length > 0) {
+                row = rows.shift();
+                tableBody.append(row);
+            }
+        }
+    } else {
+        if (panelDesc.name === 'toll')
+            html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+        else if (panelDesc.name === 'audit')
+            html = '<tr><td>nothing here...</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>'; // No action column
+        $(panelDesc.tableID).html(html);
+    }
+}
+
 function build_registrations(registrations, panelDesc) {
 
     if (registrations && registrations.length > 0) {

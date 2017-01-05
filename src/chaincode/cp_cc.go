@@ -146,7 +146,7 @@ type TollTx struct {
 	RegistrationId  string `json:"registrationId"`
 	Driver     string `json:"owner"`
 	IssueDate  string `json:"issueDate"`
-	Toll       float64  `json:"toll"`
+	Toll       float64  `json:"tollAmt"`
 	Location   string `json:"location"`
 }
 
@@ -771,6 +771,75 @@ func GetAllVehicleRegistrations(stub shim.ChaincodeStubInterface) ([]VehicleRegi
 	return allCPs, nil
 }
 
+func GetAllTolls(stub shim.ChaincodeStubInterface) ([]TollTx, error) {
+
+        var allCPs []TollTx
+
+        // Get list of all the toll keys
+        keysBytes, err := stub.GetState(tollKeys)
+        if err != nil {
+                fmt.Println("Error retrieving toll keys")
+                return nil, errors.New("Error retrieving toll keys")
+        }
+        var keys []string
+        err = json.Unmarshal(keysBytes, &keys)
+        if err != nil {
+                fmt.Println("Error unmarshalling toll keys")
+                return nil, errors.New("Error unmarshalling toll keys")
+        }
+
+        // Get all the cps
+        for _, value := range keys {
+                cpBytes, err := stub.GetState(value)
+
+                var cp TollTx
+                err = json.Unmarshal(cpBytes, &cp)
+                if err != nil {
+                        fmt.Println("Error retrieving toll " + value)
+                        return nil, errors.New("Error retrieving toll " + value)
+                }
+
+                fmt.Println("Appending Toll" + value)
+                allCPs = append(allCPs, cp)
+        }
+
+        return allCPs, nil
+}
+
+func GetAllViolations(stub shim.ChaincodeStubInterface) ([]TrafficViolationTx, error) {
+
+        var allCPs []TrafficViolationTx
+
+        // Get list of all the violation keys
+        keysBytes, err := stub.GetState(violationKeys)
+        if err != nil {
+                fmt.Println("Error retrieving violation keys")
+                return nil, errors.New("Error retrieving violation keys")
+        }
+        var keys []string
+        err = json.Unmarshal(keysBytes, &keys)
+        if err != nil {
+                fmt.Println("Error unmarshalling violation keys")
+                return nil, errors.New("Error unmarshalling violation keys")
+        }
+
+        // Get all the cps
+        for _, value := range keys {
+                cpBytes, err := stub.GetState(value)
+
+                var cp TrafficViolationTx
+                err = json.Unmarshal(cpBytes, &cp)
+                if err != nil {
+                        fmt.Println("Error retrieving violation " + value)
+                        return nil, errors.New("Error retrieving traffic violation" + value)
+                }
+
+                fmt.Println("Appending traffic violation" + value)
+                allCPs = append(allCPs, cp)
+        }
+
+        return allCPs, nil
+}
 func GetAllCPs(stub shim.ChaincodeStubInterface) ([]CP, error) {
 
 	var allCPs []CP
@@ -1065,6 +1134,18 @@ func (t *SimpleChaincode) issueTollTicket(stub shim.ChaincodeStubInterface, args
 		return nil, errors.New("Error writing the driver back")
 	}
 
+        fmt.Println("creating toll")
+        tollBytes, err := json.Marshal(&tr)
+        if err != nil {
+                        fmt.Println("Error marshalling toll")
+                        return nil, errors.New("Error issuing toll")
+        }
+        err = stub.PutState(tollPrefix+tr.TxId, tollBytes)
+        if err != nil {
+                        fmt.Println("Error issuing toll")
+                        return nil, errors.New("Error issuing toll")
+        }
+
         // Update the toll keys by adding the new key
         fmt.Println("Getting Toll Keys")
         keysBytes, err := stub.GetState(tollKeys)
@@ -1210,6 +1291,18 @@ func (t *SimpleChaincode) issueTrafficViolation(stub shim.ChaincodeStubInterface
 		fmt.Println("Error writing the drivers license back")
 		return nil, errors.New("Error writing the drivers license back")
 	}
+
+        fmt.Println("creating violation")
+        violationBytes, err := json.Marshal(&tr)
+        if err != nil {
+                        fmt.Println("Error marshalling violation")
+                        return nil, errors.New("Error issuing violation")
+        }
+        err = stub.PutState(violationPrefix+tr.TxId, violationBytes)
+        if err != nil {
+                        fmt.Println("Error issuing violation")
+                        return nil, errors.New("Error issuing violation")
+        }
 
         // Update the violation keys by adding the new key
         fmt.Println("Getting violation Keys")
@@ -1574,6 +1667,36 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 			fmt.Println("All success, returning all registrations")
 			return allCPsBytes, nil
 		}
+        } else if function == "GetAllTolls" {
+                fmt.Println("Getting all Tolls")
+                allCPs, err := GetAllTolls(stub)
+                if err != nil {
+                        fmt.Println("Error from getall tolls")
+                        return nil, err
+                } else {
+                        allCPsBytes, err1 := json.Marshal(&allCPs)
+                        if err1 != nil {
+                                fmt.Println("Error marshalling all tolls")
+                                return nil, err1
+                        }
+                        fmt.Println("All success, returning all tolls")
+                        return allCPsBytes, nil
+                }
+         } else if function == "GetAllViolations" {
+                fmt.Println("Getting all Violations")
+                allCPs, err := GetAllViolations(stub)
+                if err != nil {
+                        fmt.Println("Error from getall violations")
+                        return nil, err
+                } else {
+                        allCPsBytes, err1 := json.Marshal(&allCPs)
+                        if err1 != nil {
+                                fmt.Println("Error marshalling all violations")
+                                return nil, err1
+                        }
+                        fmt.Println("All success, returning all violations")
+                        return allCPsBytes, nil
+                }
 	} else if function == "GetCP" {
 		fmt.Println("Getting particular cp")
 		cp, err := GetCP(args[0], stub)

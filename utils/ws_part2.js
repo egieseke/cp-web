@@ -171,6 +171,50 @@ module.exports.process_msg = function (socket, data) {
                 console.log(TAG, 'Queued get_registrations job complete');
         });
     }
+    else if (data.type == 'get_tolls') {
+
+        console.log(TAG, 'getting tolls');
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.getTolls(data.user, function (err, tolls) {
+                if (err != null) {
+                    console.error(TAG, 'Error in get_tolls. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'got :tolls', tolls);
+                    sendMsg({msg: 'tolls', tolls: tolls});
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued get_tolls error:', err.message);
+            else
+                console.log(TAG, 'Queued get_tolls job complete');
+        });
+    }
+    else if (data.type == 'get_violations') {
+
+        console.log(TAG, 'getting violations');
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.getViolations(data.user, function (err, violations) {
+                if (err != null) {
+                    console.error(TAG, 'Error in get_violations. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'got :violations', violations);
+                    sendMsg({msg: 'violations',violations : violations});
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued get_violations error:', err.message);
+            else
+                console.log(TAG, 'Queued get_violations job complete');
+        });
+    }
     else if (data.type == 'transfer_paper') {
 
         console.log(TAG, 'transferring paper:', data.transfer);

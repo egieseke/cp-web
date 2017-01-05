@@ -41,6 +41,15 @@ router.get('/register', isAuthenticated, function (req, res) {
 router.get('/title', isAuthenticated, function (req, res) {
     res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });
+router.get('/issue-title', isAuthenticated, function (req, res) {
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
+});
+router.get('/issue-driver-license', isAuthenticated, function (req, res) {
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
+});
+router.get('/register-vehicle', isAuthenticated, function (req, res) {
+    res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
+});
 router.get('/audit', isAuthenticated, function (req, res) {
     res.render('part2', {title: 'SmartGov', bag: {setup: setup, e: process.error, session: req.session}});
 });

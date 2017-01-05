@@ -316,6 +316,51 @@ CPChaincode.prototype.getRegistrations = function(enrollID, cb) {
     });
 };
 
+CPChaincode.prototype.getTolls= function(enrollID, cb) {
+    console.log(TAG, 'getting driver tolls');
+
+    // Accounts will be named after the enrolled users
+    var getTollRequest = {
+        chaincodeID: this.chaincodeID,
+        fcn: 'GetAllTolls',
+        args: [enrollID]
+    };
+
+    query(this.chain, enrollID, getTollRequest, function(err, tolls) {
+
+        if(err) {
+            console.error(TAG, 'failed to getTolls', err);
+            return cb(err);
+        }
+
+        console.log(TAG, 'got tolls');
+        cb(null, tolls.toString());
+    });
+};
+
+
+CPChaincode.prototype.getViolations= function(enrollID, cb) {
+    console.log(TAG, 'getting driver violations');
+
+    // Accounts will be named after the enrolled users
+    var getViolationRequest = {
+        chaincodeID: this.chaincodeID,
+        fcn: 'GetAllViolations',
+        args: [enrollID]
+    };
+
+    query(this.chain, enrollID, getViolationRequest, function(err, violations) {
+
+        if(err) {
+            console.error(TAG, 'failed to getViolations', err);
+            return cb(err);
+        }
+
+        console.log(TAG, 'got violations');
+        cb(null, violations.toString());
+    });
+};
+
 CPChaincode.prototype.getLicenses = function(enrollID, cb) {
     console.log(TAG, 'getting driver licenses');
 
