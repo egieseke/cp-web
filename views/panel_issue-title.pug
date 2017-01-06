@@ -16,11 +16,17 @@
 				select(name="make")
 					option(value="bmw") BMW
 					option(value="ferrari") FERRARI
+					option(value="ford") FORD
+					option(value="honda") HONDA
+					option(value="lamborghini") LAMBORGHINI
+					option(value="mercedes") MERCEDES
+					option(value="toyota") TOYOTA
 				span.hint MAKE
 			legend 
 				input(type="text" name="vehicle-model" placeholder="MODEL")
 			legend
 				select(name="year")
+					option(value="2017") 2017
 					option(value="2016") 2016
 					option(value="2015") 2015
 					option(value="2014") 2014
@@ -29,8 +35,12 @@
 				span.hint YEAR
 			legend
 				select(name="vehicle-color")
+					option(value="blue") BLUE
+					option(value="black") BLACK
+					option(value="red")  RED
+					option(value="silver") SILVER
 					option(value="white") WHITE
-					option(value="gold") GOLD
+					option(value="yellow") YELLOW
 				span.hint COLOR
 			legend 
 				input(type="number" name="vehicle-miles" placeholder="MILES")
