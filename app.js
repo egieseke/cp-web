@@ -328,6 +328,6 @@ function start_websocket_server(error, d) {
             });
 
             request.end();
-        }, 5000);
+        }, 10000);
     }
 }

@@ -240,6 +240,7 @@ $(document).on('ready', function () {
     // Filter the trades whenever the filter modal changes
     $(".trade-filter").keyup(function () {
         "use strict";
+        alert("In keyup");
         console.log("Change in trade filter detected.");
         processFilterForm(panels[0]);
     });
@@ -286,10 +287,9 @@ $(document).on('ready', function () {
             console.log('transfer title...');
             var vin = $(this).attr('data_vin');
             var issuer = $(this).attr('data_issuer');
-            var newOwner = 'dealer2';
-            var amountPaid = 100.10
+            var newOwner = escapeHtml($("input[name='newOwner']").val());
+            var amount = Number($("input[name='amtPaid']").val());
 
-            // TODO Map the trade_pos to the correct button
             var msg = {
                 type: 'transfer_paper',
                 transfer: {
@@ -297,11 +297,12 @@ $(document).on('ready', function () {
                     fromOwner: issuer,
                     toOwner: newOwner,
                     issueDate: Date.now().toString(),
-                    amountPaid: amountPaid
+                    amountPaid: amount
                 },
                 user: user.username
             };
-            console.log('sending', msg);
+            console.log('sending transfer title', msg);
+	    alert(JSON.stringify(msg));
             ws.send(JSON.stringify(msg));
             $("#notificationPanel").animate({width: 'toggle'});
         }
@@ -529,8 +530,6 @@ function connect_to_server() {
         $("#errorNotificationPanel").fadeOut();
         ws.send(JSON.stringify({type: "chainstats", v: 2, user: user.username}));
         ws.send(JSON.stringify({type: "get_papers", v: 2, user: user.username}));
-        //ws.send(JSON.stringify({type: "get_licenses", v: 2, user: user.username}));
-        //ws.send(JSON.stringify({type: "get_registrations", v: 2, user: user.username}));
         if (user.name && user.role !== "auditor") {
             ws.send(JSON.stringify({type: 'get_company', company: user.name, user: user.username}));
         }
@@ -552,14 +551,6 @@ function connect_to_server() {
 				try{
 					var papers = JSON.parse(data.papers);
 					build_trades(papers, panels[0]);
-					//console.log('!', papers);
-                                        /*
-					if ($('#auditPanel').is){
-						for (var i in panels) {
-							build_trades(papers, panels[i]);
-						}
-					}
-                                       */
 				}
 				catch(e){
 					console.log('cannot parse papers', e);
@@ -631,7 +622,7 @@ function connect_to_server() {
 				ws.send(JSON.stringify({type: "get_registrations", v: 2, user: user.username}));
 				ws.send(JSON.stringify({type: "get_tolls", v: 2, user: user.username}));
 				ws.send(JSON.stringify({type: "get_violations", v: 2, user: user.username}));
-                ws.send(JSON.stringify({type: "chainstats", v: 2, user: user.username}));
+                		ws.send(JSON.stringify({type: "chainstats", v: 2, user: user.username}));
 				if (user.role !== "auditor") {
 					ws.send(JSON.stringify({type: 'get_company', company: user.name, user: user.username}));
 				}
@@ -648,7 +639,7 @@ function connect_to_server() {
 
     function onError(evt) {
         console.log('ERROR ', evt);
-        if (!connected && bag.e == null) {											//don't overwrite an error message
+        if (!connected && bag.e == null) {		//don't overwrite an error message
             $("#errorName").html("Warning");
             $("#errorNoticeText").html("Waiting on the node server to open up so we can talk to the blockchain. ");
             $("#errorNoticeText").append("This app is likely still starting up. ");
@@ -1192,6 +1183,7 @@ var names = [
 function processFilterForm(panelDesc) {
     "use strict";
 
+    alert("process filter");
     var form = document.forms[panelDesc.formID];
 
     console.log("Processing filter form");
