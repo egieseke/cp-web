@@ -237,6 +237,21 @@
         text-align: center;
 }
 
+#vehicleTerminationNotificationPanel{
+        display:none;
+        width: 450px;
+        position: absolute;
+        right:0;
+        top: 90px;
+        color: $acc_color3;
+        background: $acc_color1;
+        padding: 30px 0;
+        border-left: 25px $hi_color3 solid;
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        text-align: center;
+}
+
 #registrationRenewalNotificationPanel{
         display:none;
         width: 450px;

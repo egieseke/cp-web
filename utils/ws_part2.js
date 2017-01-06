@@ -236,6 +236,27 @@ module.exports.process_msg = function (socket, data) {
                 console.log(TAG, 'Queued transfer_paper job complete');
         });
     }
+    else if (data.type == 'terminate_asset') {
+
+        console.log(TAG, 'terminate asset:', data.transfer);
+        chaincodeHelper.queue.push(function (cb) {
+            chaincodeHelper.terminateAsset(data.user, data.terminate, function (err, result) {
+                if (err != null) {
+                    console.error(TAG, 'Error in terminate_asset. No response will be sent. error:', err);
+                }
+                else {
+                    console.log(TAG, 'terminate asset. No response will be sent result:', result);
+                }
+
+                cb();
+            });
+        }, function (err) {
+            if (err)
+                console.error(TAG, 'Queued terminate asset error:', err.message);
+            else
+                console.log(TAG, 'Queued terminate_asset job complete');
+        });
+    }
     else if (data.type == 'send_mail') {
 	var nodemailer = require('nodemailer');
 	console.log("In send email...");

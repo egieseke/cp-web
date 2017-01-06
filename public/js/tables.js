@@ -45,6 +45,28 @@ function buyButton(disabled, vin, issuer) {
     return td;
 }
 
+function terminateButton(disabled, vin, issuer) {
+    var button = document.createElement('button');
+    button.setAttribute('type', 'button');
+    button.setAttribute('data_vin', vin);
+    button.setAttribute('data_issuer', issuer);
+    if(disabled) button.disabled = true;
+    button.classList.add('terminateAsset');
+    button.classList.add('altButton');
+
+    var span = document.createElement('span');
+    span.classList.add('fa');
+    span.classList.add('fa-exchange');
+    span.innerHTML = ' &nbsp;&nbsp;Terminate';
+    button.appendChild(span);
+
+    // Wrap the buy button in a td like the other items in the row.
+    var td = document.createElement('td');
+    td.appendChild(button);
+
+    return td;
+}
+
 function simulateViolationButton(disabled, licenseId, driver) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');
@@ -174,6 +196,7 @@ function paper_to_entries(paper) {
             miles: paper.miles,
             value: paper.value,
             issuer: paper.issuer,
+	    state: paper.state,
             owner: paper.owner
         };
 

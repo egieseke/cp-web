@@ -103,7 +103,12 @@ html
 					});
 					$("#registrationRenewalNotificationPanel").animate({width:'toggle'});
 				});
-				
+				$("#closeVehicleTerminationNotification").click(function(){
+					$("#vehicleTerminationNotificationPanel").animate({right:'-=450'}, 500, function(){
+						$(this).hide();
+					});
+					$("#vehicleTerminationNotificationPanel").animate({width:'toggle'});
+				});
 				
 				$(".backToHome").click(function(){
 					$(".panel").hide();
@@ -113,6 +118,7 @@ html
 					$("#registrationRenewalNotificationPanel").animate({width:'toggle'});
 					$("#trafficViolationNotificationPanel").animate({width:'toggle'});
 					$("#tollNotificationPanel").animate({width:'toggle'});
+					$("#vehicleTerminationNotificationPanel").animate({width:'toggle'});
 				});
 				
 				//Page refresh show correct panel
@@ -163,6 +169,11 @@ html
 					span.fa.fa-check#noticeIcon
 					#noticeText YOUR REGISTRATION RENEWAL WAS SUBMITTED!
 					button(type="button")#closeRegistrationRenewalNotification OK		
+
+				#vehicleTerminationNotificationPanel
+					span.fa.fa-check#noticeIcon
+					#noticeText YOUR ASSET TERMINATION REQUEST WAS SUBMITTED!
+					button(type="button")#closeVehicleTerminationNotification OK
 
 				#errorNotificationPanel
 					span.fa.fa-minus-circle#errorNoticeIcon

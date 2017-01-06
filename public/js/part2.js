@@ -179,6 +179,7 @@ $(document).on('ready', function () {
                     value: Number($("input[name='vehicle-value']").val()),
                     owner: user.name,
                     issuer: user.name,
+                    state: "active",
                     issueDate: Date.now().toString()
                 }, 
                 user: user.username
@@ -305,6 +306,29 @@ $(document).on('ready', function () {
 	    alert(JSON.stringify(msg));
             ws.send(JSON.stringify(msg));
             $("#notificationPanel").animate({width: 'toggle'});
+        }
+    });
+
+    //terminate asset
+    $(document).on("click", ".terminateAsset", function () {
+        if (user.username) {
+            console.log('terminating asset...');
+            var vin = $(this).attr('data_vin');
+            var issuer = $(this).attr('data_issuer');
+
+            var msg = {
+                type: 'terminate_asset',
+                terminate: {
+                    vin: vin,
+                    owner: issuer,
+                    issueDate: Date.now().toString()
+                },
+                user: user.username
+            };
+            console.log('sending terminate asset', msg);
+            alert(JSON.stringify(msg));
+            ws.send(JSON.stringify(msg));
+            $("#vehicleTerminationNotificationPanel").animate({width: 'toggle'});
         }
     });
 
@@ -1100,7 +1124,8 @@ function build_trades(papers, panelDesc) {
                         entries[i].miles,
                         entries[i].value,
                         entries[i].issuer,
-                        entries[i].owner
+                        entries[i].owner,
+			entries[i].state
                     ];
 
                     var row = createRow(data);
@@ -1111,8 +1136,10 @@ function build_trades(papers, panelDesc) {
                         var disabled = false;
                         if (user.name.toLowerCase() === entries[i].owner.toLowerCase()) disabled = false;			//cannot buy my own stuff
                         //if (entries[i].issuer.toLowerCase() !== entries[i].owner.toLowerCase()) disabled = true;
-                        var button = buyButton(disabled, entries[i].vin, entries[i].issuer);
+                        var button = buyButton(disabled, entries[i].vin, entries[i].owner);
                         row.appendChild(button);
+                        var button1 = terminateButton(disabled, entries[i].vin, entries[i].owner);
+                        row.appendChild(button1);
                     }
                     rows.push(row);
                 }

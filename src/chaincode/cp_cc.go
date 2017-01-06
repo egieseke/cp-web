@@ -110,8 +110,9 @@ type CP struct {
 	Color     string  `json:"color"`
 	Miles     int     `json:"miles"`
 	Value     float64 `json:"value"`
-	Owner    string `json:"owner"`
+	Owner     string `json:"owner"`
 	Issuer    string  `json:"issuer"`
+	State     string  `json:"state"`
 	IssueDate string  `json:"issueDate"`
 }
 
@@ -164,6 +165,12 @@ type TransferTitleTx struct {
 	ToOwner string  `json:"toOwner"`
 	IssueDate  string `json:"issueDate"`
         AmountPaid  float64 `json:"amountPaid"`
+}
+
+type TerminateAssetTx struct {
+	VIN         string  `json:"vin"`
+	Owner string  `json:"owner"`
+	IssueDate  string `json:"issueDate"`
 }
 
 func (t *SimpleChaincode) createAccounts(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
@@ -840,7 +847,7 @@ func GetAllViolations(stub shim.ChaincodeStubInterface) ([]TrafficViolationTx, e
 
         return allCPs, nil
 }
-func GetAllCPs(stub shim.ChaincodeStubInterface) ([]CP, error) {
+func GetAllTitles(stub shim.ChaincodeStubInterface) ([]CP, error) {
 
 	var allCPs []CP
 
@@ -1458,6 +1465,81 @@ func (t *SimpleChaincode) renewLicense(stub shim.ChaincodeStubInterface, args []
 	return nil, nil
 }
 
+func (t *SimpleChaincode) terminateAsset(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	fmt.Println("Terminating Asset")
+
+	//need one arg
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting terminate asset record")
+	}
+
+	var tr TerminateAssetTx
+
+	fmt.Println("Unmarshalling Transaction")
+	err := json.Unmarshal([]byte(args[0]), &tr)
+	if err != nil {
+		fmt.Println("Error Unmarshalling Transaction")
+		return nil, errors.New("Invalid transfer title issue")
+	}
+
+	fmt.Println("Getting State on title " + tr.VIN)
+	cpBytes, err := stub.GetState(vehiclePrefix + tr.VIN)
+	if err != nil {
+		fmt.Println("VIN not found")
+		return nil, errors.New("VIN not found " + tr.VIN)
+	}
+
+	var cp CP
+	fmt.Println("Unmarshalling Title " + tr.VIN)
+	err = json.Unmarshal(cpBytes, &cp)
+	if err != nil {
+		fmt.Println("Error unmarshalling title" + tr.VIN)
+		return nil, errors.New("Error unmarshalling title " + tr.VIN)
+	}
+
+	var fromCompany Account
+	fmt.Println("Getting State on fromOwner " + tr.Owner)
+	fromCompanyBytes, err := stub.GetState(accountPrefix + tr.Owner)
+	if err != nil {
+		fmt.Println("Account not found " + tr.Owner)
+		return nil, errors.New("Account not found " + tr.Owner)
+	}
+
+	fmt.Println("Unmarshalling FromOwner")
+	err = json.Unmarshal(fromCompanyBytes, &fromCompany)
+	if err != nil {
+		fmt.Println("Error unmarshalling account " + tr.Owner)
+		return nil, errors.New("Error unmarshalling account " + tr.Owner)
+	}
+
+
+	// If fromCompany doesn't own this paper
+	if cp.Owner != tr.Owner {
+		fmt.Println("The owner " + tr.Owner+ " doesn't own this title/vehicle")
+		return nil, errors.New("The owner " + tr.Owner+ "doesn't own this title/vehicle")
+	} else {
+		fmt.Println("The FromOwner does own this title/vehicle")
+	}
+
+
+        cp.Owner = ""
+        cp.State="INACTIVE"
+	// cp
+	cpBytesToWrite, err := json.Marshal(&cp)
+	if err != nil {
+		fmt.Println("Error marshalling the asset")
+		return nil, errors.New("Error marshalling the asset")
+	}
+	fmt.Println("Put state on Vehicle Asset")
+	err = stub.PutState(vehiclePrefix+tr.VIN, cpBytesToWrite)
+	if err != nil {
+		fmt.Println("Error writing the asset back")
+		return nil, errors.New("Error writing the asset back")
+	}
+
+	fmt.Println("Successfully completed Invoke")
+	return nil, nil
+}
 /*
 Asset: title  owner=toOwner   
 fee deducted from FromOwner and sent to government
@@ -1622,11 +1704,11 @@ func (t *SimpleChaincode) transferTitle(stub shim.ChaincodeStubInterface, args [
 func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Println("Query running. Function: " + function)
 
-	if function == "GetAllCPs" {
-		fmt.Println("Getting all CPs")
-		allCPs, err := GetAllCPs(stub)
+	if function == "GetAllTitles" {
+		fmt.Println("Getting all titles")
+		allCPs, err := GetAllTitles(stub)
 		if err != nil {
-			fmt.Println("Error from getallcps")
+			fmt.Println("Error from getall titles")
 			return nil, err
 		} else {
 			allCPsBytes, err1 := json.Marshal(&allCPs)
@@ -1634,7 +1716,7 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 				fmt.Println("Error marshalling allcps")
 				return nil, err1
 			}
-			fmt.Println("All success, returning allcps")
+			fmt.Println("All success, returning all titles")
 			return allCPsBytes, nil
 		}
 	} else if function == "GetAllDriverLicenses" {
@@ -1744,14 +1826,16 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	fmt.Println("Invoke running. Function: " + function)
 
-	if function == "issueCommercialPaper" {
+	if function == "issueVehicleTitle" {
 		return t.issueVehicleTitle(stub, args)
 	} else if function == "issueDriverLicense" {
 		return t.issueDriverLicense(stub, args)
 	} else if function == "issueVehicleRegistration" {
 		return t.issueVehicleRegistration(stub, args)
-	} else if function == "transferPaper" {
+	} else if function == "transferTitle" {
 		return t.transferTitle(stub, args)
+	} else if function == "terminateAsset" {
+		return t.terminateAsset(stub, args)
 	} else if function == "renewLicense" {
 		return t.renewLicense(stub, args)
         } else if function == "issueTrafficViolation" {
