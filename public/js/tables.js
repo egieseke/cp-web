@@ -111,13 +111,19 @@ function renewLicenseButton(disabled, licenseId, driver) {
     return td;
 }
 
-function simulateNotifyButton(disabled, registrationId, owner) {
+function simulateNotifyButton(disabled, entry) {
     var button = document.createElement('button');
     button.setAttribute('type', 'button');
-    button.setAttribute('data_registrationId', registrationId);
-    button.setAttribute('data_owner', owner);
+    button.setAttribute('data_licenseId', entry.licenseId);
+    button.setAttribute('data_owner', entry.owner);
+    button.setAttribute('data_type', entry.type);
+    button.setAttribute('data_id', entry.txId);
+    button.setAttribute('data_amt', entry.tollAmt);
+    button.setAttribute('data_loc', entry.location);
+    button.setAttribute('data_date', entry.issueDate);
+
     if(disabled) button.disabled = true;
-    button.classList.add('simulateNotify');
+    button.classList.add('sendMail');
     button.classList.add('altButton');
 
     var span = document.createElement('span');

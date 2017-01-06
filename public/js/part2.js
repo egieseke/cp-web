@@ -13,6 +13,7 @@ var user = {
     name: bag.session.name,
     role: bag.session.role
 };
+
 var panels = [
     {
         name: "title",
@@ -305,6 +306,25 @@ $(document).on('ready', function () {
             $("#notificationPanel").animate({width: 'toggle'});
         }
     });
+
+   // send mail
+   $(document).on("click", ".sendMail", function () {
+        alert("send mail")
+        var sendTo = $(this).attr('data_owner') + "@gmail.com";
+        var letter = "Dear " + $(this).attr('data_owner') + " This ticket " + $(this).attr('data_id') + " is with regards to a traffic violation namely " + $(this).attr('data_type') + " that you committed on " + $(this).attr('data_date') + " @ location " + $(this).attr('data_loc') + ". A fine amount of AED " + $(this).attr('data_amt') + " has been charged to your account"
+	alert (letter);
+	alert(sendTo);
+        var msg = {
+                type: 'send_mail',
+                mail: {
+		    to: sendTo,
+		    text: letter
+                },
+                user: user.username
+            };
+            console.log('sending', msg);
+            ws.send(JSON.stringify(msg));
+   });
 
    //renew license
     $(document).on("click", ".renewLicense", function () {
@@ -701,7 +721,7 @@ function build_violations(violations, panelDesc) {
 
                         var simulate = true;
                         if (user.name.toLowerCase() === 'government') simulate = false;
-                        var button1 = simulateNotifyButton(simulate, entries[i].registrationId, entries[i].owner);
+                        var button1 = simulateNotifyButton(simulate, entries[i]);
                         row.appendChild(button1);
                     }
                     rows.push(row);
@@ -1216,4 +1236,3 @@ function excluded(entry, filter) {
     // Must be a valid trade if we reach this point
     return true;
 }
-

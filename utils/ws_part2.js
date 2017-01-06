@@ -236,6 +236,29 @@ module.exports.process_msg = function (socket, data) {
                 console.log(TAG, 'Queued transfer_paper job complete');
         });
     }
+    else if (data.type == 'send_mail') {
+	var nodemailer = require('nodemailer');
+	console.log("In send email...");
+
+	// create reusable transporter object using the default SMTP transport
+	var transporter = nodemailer.createTransport('smtps://admin%40datajhoom.com:CapeCod$1@smtp.gmail.com');
+
+	// setup e-mail data with unicode symbols
+	var mailOptions = {
+    		from: '"UAESmartGov " <admin@datajhoom.com>', // sender address
+    		to: data.mail.to,
+    		subject: 'Traffic Violation Ticket', // Subject line
+    		text: data.mail.text
+         };
+
+	// send mail with defined transport object
+	transporter.sendMail(mailOptions, function(error, info){
+    		if(error){
+        		return console.log(error);
+    		}
+    		console.log('Message sent: ' + info.response);
+    	});	
+    }
     else if (data.type == 'renew_license') {
 
         console.log(TAG, 'renewing license:', data.renewlicense);
