@@ -129,7 +129,7 @@ $(document).on('ready', function () {
             };
             if (obj.registration && obj.registration.testId) {
                 console.log('creating registration, sending', obj);
-                alert(JSON.stringify(obj));
+                //alert(JSON.stringify(obj));
                 ws.send(JSON.stringify(obj));
                 $(".panel").hide();
                 $("#registrationPanel").show();
@@ -157,7 +157,7 @@ $(document).on('ready', function () {
             };
             if (obj.license && obj.license.testId) {
                 console.log('creating license, sending', obj);
-                alert(JSON.stringify(obj));
+                //alert(JSON.stringify(obj));
                 ws.send(JSON.stringify(obj));
                 $(".panel").hide();
                 $("#licensePanel").show();
@@ -186,7 +186,7 @@ $(document).on('ready', function () {
             };
             if (obj.paper && obj.paper.vin) {
                 console.log('creating vehicle, sending', obj);
-                alert(JSON.stringify(obj));
+                //alert(JSON.stringify(obj));
                 ws.send(JSON.stringify(obj));
                 $(".panel").hide();
                 $("#titlePanel").show();
@@ -241,7 +241,6 @@ $(document).on('ready', function () {
     // Filter the trades whenever the filter modal changes
     $(".trade-filter").keyup(function () {
         "use strict";
-        alert("In keyup");
         console.log("Change in trade filter detected.");
         processFilterForm(panels[0]);
     });
@@ -303,7 +302,7 @@ $(document).on('ready', function () {
                 user: user.username
             };
             console.log('sending transfer title', msg);
-	    alert(JSON.stringify(msg));
+	    //alert(JSON.stringify(msg));
             ws.send(JSON.stringify(msg));
             $("#notificationPanel").animate({width: 'toggle'});
         }
@@ -326,7 +325,7 @@ $(document).on('ready', function () {
                 user: user.username
             };
             console.log('sending terminate asset', msg);
-            alert(JSON.stringify(msg));
+            //alert(JSON.stringify(msg));
             ws.send(JSON.stringify(msg));
             $("#vehicleTerminationNotificationPanel").animate({width: 'toggle'});
         }
@@ -334,11 +333,8 @@ $(document).on('ready', function () {
 
    // send mail
    $(document).on("click", ".sendMail", function () {
-        alert("send mail")
         var sendTo = $(this).attr('data_owner') + "@gmail.com";
         var letter = "Dear " + $(this).attr('data_owner') + " This ticket " + $(this).attr('data_id') + " is with regards to a traffic violation namely " + $(this).attr('data_type') + " that you committed on " + $(this).attr('data_date') + " @ location " + $(this).attr('data_loc') + ". A fine amount of AED " + $(this).attr('data_amt') + " has been charged to your account"
-	alert (letter);
-	alert(sendTo);
         var msg = {
                 type: 'send_mail',
                 mail: {
@@ -353,16 +349,14 @@ $(document).on('ready', function () {
 
    //renew license
     $(document).on("click", ".renewLicense", function () {
-        alert("renew license")
-         var myDate = new Date(); 
-         myDate.setFullYear(myDate.getFullYear() + 2);
+        var myDate = new Date(); 
+        myDate.setFullYear(myDate.getFullYear() + 2);
         if (user.username) {
             console.log('renewing license...');
             //var i = $(this).attr('trade_pos');
             var licenseId = $(this).attr('data_licenseId');
             var driver = $(this).attr('data_driver');
 
-            alert("driver" + driver)
 
             // TODO Map the trade_pos to the correct button
             var msg = {
@@ -384,7 +378,6 @@ $(document).on('ready', function () {
 
     //simulate traffic violation
     $(document).on("click", ".simulateViolation", function () {
-        alert("simulate traffic violation")
          var myDate = new Date();
          myDate.setFullYear(myDate.getFullYear() + 2);
         if (user.username) {
@@ -416,7 +409,6 @@ $(document).on('ready', function () {
 
     //simulate notify TODO
     $(document).on("click", ".simulateNotify", function () {
-        alert("simulate notify")
         if (user.username) {
             console.log('simulating notify...');
             var licenseId = $(this).attr('data_licenseId');
@@ -446,7 +438,6 @@ $(document).on('ready', function () {
 
     //renew registration
     $(document).on("click", ".renewRegistration", function () {
-        alert("renew registration")
          var myDate = new Date();
          myDate.setFullYear(myDate.getFullYear() + 4);
         if (user.username) {
@@ -473,7 +464,6 @@ $(document).on('ready', function () {
 
     //simulate toll
     $(document).on("click", ".simulateToll", function () {
-        alert("simulate toll")
          var myDate = new Date();
          myDate.setFullYear(myDate.getFullYear() + 4);
         if (user.username) {
@@ -1210,7 +1200,6 @@ var names = [
 function processFilterForm(panelDesc) {
     "use strict";
 
-    alert("process filter");
     var form = document.forms[panelDesc.formID];
 
     console.log("Processing filter form");
