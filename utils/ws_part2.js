@@ -262,7 +262,7 @@ module.exports.process_msg = function (socket, data) {
 	console.log("In send email...");
 
 	// create reusable transporter object using the default SMTP transport
-	var transporter = nodemailer.createTransport('smtps://admin%40datajhoom.com:CapeCod$1@smtp.gmail.com');
+	var transporter = nodemailer.createTransport('smtps://admin%40datajhoom.com:<pwd>@smtp.gmail.com');
 
 	// setup e-mail data with unicode symbols
 	var mailOptions = {
